@@ -20,3 +20,4 @@ Controls: W/A/D or arrows, drag to look, Q/E camera angle, P pause, H hide help.
 Note: AI-generated art; check the PixVerse terms before public/commercial use.
 
 Claude Code: `.claude/agents/` defines cheaper subagents (Haiku `mechanic`, Sonnet `implementer` / `verifier`); the main session plans and delegates — see `CLAUDE.md`.
+Deploy: pushing to `Shoulder` publishes to GitHub Pages via `.github/workflows/pages.yml` (also runnable by hand / the `deploy` skill).
