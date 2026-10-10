@@ -4,7 +4,9 @@ from PIL import Image
 
 TARGET_H = 640
 TARGET_TORSO = 300          # px: torso width after normalisation
-OUT = '/home/claude/game/assets'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
+os.chdir(os.path.join(ROOT, 'work'))  # shots/ (s0-5.png in, base/cut out) lives here
+OUT = os.path.join(ROOT, 'assets')
 
 def load(i):
     return cv2.imread(f'shots/cut{i}.png', cv2.IMREAD_UNCHANGED)   # BGRA
