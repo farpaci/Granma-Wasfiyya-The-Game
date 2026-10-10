@@ -1,5 +1,7 @@
-import sys; sys.path.insert(0,'/home/claude/game/slap')
 import cv2, numpy as np, os, json
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
+os.makedirs(os.path.join(ROOT, 'work', 'slap'), exist_ok=True)
+os.chdir(os.path.join(ROOT, 'work', 'slap'))  # raw/ in, keyed/ slap_png/ out
 from scipy import ndimage
 from concurrent.futures import ProcessPoolExecutor
 os.makedirs('keyed', exist_ok=True)

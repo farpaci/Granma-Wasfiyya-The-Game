@@ -1,6 +1,9 @@
 import cv2, numpy as np, json, os
 from PIL import Image
-OUT = '/home/claude/game/assets_slap'; os.makedirs(OUT, exist_ok=True); os.makedirs('slap_png', exist_ok=True)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
+os.makedirs(os.path.join(ROOT, 'work', 'slap'), exist_ok=True)
+os.chdir(os.path.join(ROOT, 'work', 'slap'))  # raw/ in, keyed/ slap_png/ out
+OUT = os.path.join(ROOT, 'assets_slap'); os.makedirs(OUT, exist_ok=True); os.makedirs('slap_png', exist_ok=True)
 Y_TOP, Y_BOT, Y_CROP_BOT = 38.0, 702.0, 704
 SCALE = 0.935                         # match px-per-metre of the walk-cycle sprites
 STRENGTH = 1.0                        # proportion reshaping strength (1 = match original Mama)
@@ -40,7 +43,7 @@ def lab_stats(imgs):
         lab = cv2.cvtColor(im[...,:3].astype(np.uint8), cv2.COLOR_BGR2LAB).astype(np.float32)
         px.append(lab[m][::7])
     px = np.concatenate(px); return px.mean(0), px.std(0)
-orig_imgs = [cv2.imread(f'/home/claude/game/video/walk_png/walk_{n:02d}.png', cv2.IMREAD_UNCHANGED) for n in range(0,24,3)]
+orig_imgs = [cv2.imread(os.path.join(ROOT, 'work', 'video', 'walk_png', f'walk_{n:02d}.png'), cv2.IMREAD_UNCHANGED) for n in range(0,24,3)]
 mo, so = lab_stats(orig_imgs)
 
 meta = {}
