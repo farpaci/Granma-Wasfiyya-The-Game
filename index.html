@@ -2,63 +2,78 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Granma Wasfiyya">
+<meta name="theme-color" content="#1a1410">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Granma%20Wasfiyya%22%2C%22short_name%22%3A%22Wasfiyya%22%2C%22display%22%3A%22fullscreen%22%2C%22orientation%22%3A%22any%22%2C%22background_color%22%3A%22%231a1410%22%2C%22theme_color%22%3A%22%231a1410%22%7D">
 <title>Granma Wasfiyya – Walk and Slap</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --wood-1:#7a2a1c; --wood-2:#4d1810; --cream:#fff3d6; --gold:#ffc83a; --ink:#2a0d08;
+    --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px); --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
   }
   *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;background:#1a1410;overflow:hidden;font-family:'Baloo 2',system-ui,sans-serif;touch-action:none}
-  #game{position:fixed;inset:0;width:100%;height:100%;display:block}
+  html,body{margin:0;height:100%;height:100dvh;width:100%;background:#1a1410;overflow:hidden;overscroll-behavior:none;font-family:'Baloo 2',system-ui,sans-serif;touch-action:none}
+  body{position:fixed;left:0;top:0}
+  #game{position:fixed;inset:0;width:100%;height:100%;height:100dvh;display:block}
 
   /* Title sign */
-  #title{position:fixed;left:min(2vw,28px);top:min(2vh,22px);padding:.55em 1.3em .5em;
+  #title{position:fixed;left:calc(min(2vw,28px) + var(--sl));top:calc(min(2vh,22px) + var(--st));padding:.5em 1.1em .45em;font-size:clamp(12px,3.4vmin,26px);
     background:linear-gradient(180deg,var(--wood-1),var(--wood-2));
-    border:3px solid #2e0f09;border-radius:12px;box-shadow:0 6px 0 #2a0c07,0 10px 24px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.18);
-    text-align:center;transform:rotate(-1.2deg);pointer-events:none}
+    border:2px solid #2e0f09;border-radius:9px;box-shadow:0 3px 0 #2a0c07,0 5px 12px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.18);
+    text-align:center;transform:rotate(-1.2deg);transform-origin:0 0;transition:transform .35s;cursor:pointer;z-index:4}
+  #title.big{transform:rotate(-1.2deg) scale(2)}
+  #title::after{content:'\1F50D';position:absolute;right:-9px;bottom:-9px;font-size:.62em;line-height:1;background:rgba(20,28,36,.75);border-radius:50%;padding:.25em;border:1px solid rgba(255,255,255,.3)}
+  #title.big::after{display:none}
   #title b{display:block;font-family:'Lilita One','Baloo 2',Impact,sans-serif;font-weight:400;letter-spacing:.04em;
-    font-size:clamp(22px,4.2vw,54px);line-height:1;color:var(--cream);
-    -webkit-text-stroke:2px #2a0d08;paint-order:stroke fill;text-shadow:0 3px 0 #2a0d08}
+    font-size:1em;line-height:1;color:var(--cream);
+    -webkit-text-stroke:1.5px #2a0d08;paint-order:stroke fill;text-shadow:0 2px 0 #2a0d08}
   #title i{display:block;font-style:normal;font-family:'Lilita One','Baloo 2',Impact,sans-serif;letter-spacing:.05em;
-    font-size:clamp(10px,1.5vw,19px);color:var(--gold);margin-top:.15em;text-shadow:0 2px 0 #2a0d08}
+    font-size:.4em;color:var(--gold);margin-top:.15em;text-shadow:0 2px 0 #2a0d08}
 
   /* HUD right */
-  #hud-r{position:fixed;right:min(2vw,26px);top:min(2vh,22px);display:flex;gap:10px;align-items:stretch}
+  #hud-r{position:fixed;z-index:20;right:calc(min(2vw,26px) + var(--sr));top:calc(min(2vh,22px) + var(--st));display:flex;gap:6px;align-items:stretch}
   .panel{background:rgba(20,28,36,.62);border:1px solid rgba(255,255,255,.16);border-radius:12px;backdrop-filter:blur(6px);color:#fff}
-  #dist,#slaps{padding:.35em .9em .3em;text-align:left;min-width:150px}
-  #slaps{min-width:96px}
-  #dist small,#slaps small{display:block;font-size:11px;letter-spacing:.14em;opacity:.85;font-weight:800}
-  #dist span,#slaps span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(24px,3vw,36px);letter-spacing:.04em;line-height:1.05}
-  #pause{width:54px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(20,28,36,.62);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(6px)}
-  #pause:active{transform:scale(.95)}
-  #pause i{display:block;width:6px;height:22px;background:#fff;border-radius:2px;box-shadow:12px 0 0 #fff;margin-right:12px}
-  body.paused #pause i{width:0;height:0;background:none;box-shadow:none;border-left:20px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent;border-radius:0;margin:0 0 0 6px}
+  #dist,#slaps{padding:.2em .6em .15em;text-align:left;min-width:92px;border-radius:9px}
+  #slaps{min-width:62px}
+  #dist small,#slaps small{display:block;font-size:8px;letter-spacing:.14em;opacity:.85;font-weight:800}
+  #dist span,#slaps span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(15px,2.6vmin,22px);letter-spacing:.04em;line-height:1.05}
+  #pause,#fs,#helpbtn{width:36px;border:1px solid rgba(255,255,255,.16);border-radius:9px;color:#fff;background:rgba(20,28,36,.62);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(6px)}
+  #pause:active,#fs:active,#helpbtn:active{transform:scale(.95)}
+  #fs,#helpbtn{font-size:17px;line-height:1;padding:0;font-family:system-ui,sans-serif;font-weight:800}
+  #fs[hidden]{display:none}
+  #helpbtn{background:rgba(20,28,36,.62);cursor:pointer;backdrop-filter:blur(6px)}
+  #iostip{position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:8;padding:.4em .8em;font-size:12px;max-width:min(92vw,340px);text-align:center;opacity:0;pointer-events:none;transition:opacity .6s}
+  #iostip.on{opacity:1;pointer-events:auto}
+  #iostip button{margin-left:.7em;border:0;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;font:inherit;padding:.1em .6em}
+  #pause i{display:block;width:4px;height:14px;background:#fff;border-radius:1px;box-shadow:8px 0 0 #fff;margin-right:8px}
+  body.paused #pause i{width:0;height:0;background:none;box-shadow:none;border-left:13px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;border-radius:0;margin:0 0 0 4px}
 
   /* narrow screens: the longer title gets its own row, HUD drops below it */
   @media (max-width:640px){
-    #hud-r{top:calc(min(2vh,22px) + 70px)}
-    #title{padding:.45em 1em .4em}
-    #title b{font-size:clamp(20px,6.6vw,30px)}
-    #title i{font-size:clamp(9px,2.6vw,12px)}
-    #hint{top:calc(min(2vh,22px) + 150px)}
+    #hud-r{top:calc(min(2vh,22px) + 46px + var(--st))}
+    #hint{top:calc(min(2vh,22px) + 92px + var(--st)) !important}
   }
 
   /* Controls hint */
-  #hint{position:fixed;right:min(2vw,26px);top:calc(min(2vh,22px) + 74px);padding:.8em 1.1em;font-size:14px;line-height:1.5;transition:opacity .6s}
-  #hint h4{margin:0 0 .3em;font-size:15px}
-  #hint div{display:grid;grid-template-columns:78px 1fr;gap:0 10px}
+  #hint{position:fixed;right:calc(min(2vw,26px) + var(--sr));top:calc(min(2vh,22px) + 50px + var(--st));padding:.6em .9em;font-size:13px;line-height:1.45;opacity:0;pointer-events:none;transition:opacity .35s;z-index:6}
+  #hint.on{opacity:1;pointer-events:auto}
+  #hint h4{margin:0 0 .3em;font-size:14px}
+  #hint div{display:grid;grid-template-columns:64px 1fr;gap:0 10px}
   #hint kbd{font-family:inherit;font-weight:800;opacity:.95}
   #hint em{font-style:normal;opacity:.85}
   #hint .foot{opacity:.6;font-size:12px;margin-top:.4em}
-  #credit{position:fixed;left:50%;bottom:max(1.2vh,8px);transform:translateX(-50%);font-size:11px;letter-spacing:.03em;color:#fff3d6;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);white-space:nowrap;pointer-events:none;z-index:5}
+  #credit{position:fixed;left:50%;bottom:calc(max(1.2vh,8px) + var(--sb));transform:translateX(-50%);font-size:11px;letter-spacing:.03em;color:#fff3d6;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);white-space:nowrap;pointer-events:none;z-index:5}
   #credit a{color:inherit;text-decoration:none;pointer-events:auto}
-  body.touch #hint{display:none}
+  body.touch #hint .kb,body:not(.touch) #hint .tc{display:none}
 
   /* Joystick */
-  #stick{position:fixed;left:max(3vw,22px);bottom:max(4vh,22px);width:clamp(110px,16vmin,168px);aspect-ratio:1;border-radius:50%;
+  #stick{position:fixed;left:calc(max(3vw,22px) + var(--sl));bottom:calc(max(4vh,22px) + var(--sb));width:clamp(110px,16vmin,168px);aspect-ratio:1;border-radius:50%;
     background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.22),rgba(40,40,40,.45));border:2px solid rgba(255,255,255,.55);
     box-shadow:0 4px 18px rgba(0,0,0,.3);touch-action:none}
   #stick .a{position:absolute;color:rgba(255,255,255,.8);font-size:clamp(11px,1.8vmin,18px);line-height:1}
@@ -68,11 +83,11 @@
     background:radial-gradient(circle at 40% 35%,#fff,#d9d9d9 55%,#a9a9a9);box-shadow:0 3px 10px rgba(0,0,0,.45)}
 
   /* look hint */
-  #look{position:fixed;right:min(2vw,26px);bottom:max(4vh,22px);display:flex;align-items:center;gap:.7em;padding:.7em 1.1em;
-    font-weight:800;letter-spacing:.07em;font-size:13px;transition:opacity .8s}
+  #look{position:fixed;right:calc(min(2vw,26px) + var(--sr));bottom:calc(max(4vh,22px) + var(--sb));display:flex;align-items:center;gap:.7em;padding:.4em .8em;
+    font-weight:800;letter-spacing:.05em;font-size:11px;transition:opacity .8s;pointer-events:none}
 
   /* slap button */
-  #slapbtn{position:fixed;right:min(2vw,26px);bottom:calc(max(4vh,22px) + 62px);width:clamp(76px,12vmin,104px);aspect-ratio:1;border-radius:50%;
+  #slapbtn{position:fixed;right:calc(min(2vw,26px) + var(--sr));bottom:calc(max(4vh,22px) + 62px + var(--sb));width:clamp(76px,12vmin,104px);aspect-ratio:1;border-radius:50%;
     border:4px solid var(--gold);background:radial-gradient(circle at 40% 30%,#c8402e,#7a1d14 70%);box-shadow:0 5px 0 #4a0f08,0 10px 22px rgba(0,0,0,.4);
     display:grid;place-items:center;cursor:pointer;touch-action:none;font-size:clamp(34px,6vmin,54px);line-height:1;padding:0;transition:opacity .3s}
   #slapbtn:active{transform:translateY(3px) scale(.96);box-shadow:0 2px 0 #4a0f08}
@@ -97,11 +112,13 @@
   <div id="dist" class="panel"><small>DISTANCE</small><span id="distv">00000 m</span></div>
   <div id="slaps" class="panel"><small>SLAPS</small><span id="slapsv">0</span></div>
   <button id="pause" aria-label="Pause"><i></i></button>
+  <button id="fs" aria-label="Fullscreen" hidden>⛶</button>
+  <button id="helpbtn" aria-label="Help">?</button>
 </div>
 
 <div id="hint" class="panel">
   <h4>Slap the troublemakers!</h4>
-  <div>
+  <div class="kb">
     <kbd>W / ↑</kbd><em>Move forward</em>
     <kbd>A / ←</kbd><em>Move left</em>
     <kbd>D / →</kbd><em>Move right</em>
@@ -111,7 +128,13 @@
     <kbd>J / K</kbd><em>Near / far air slap</em>
     <kbd>P</kbd><em>Pause</em>
   </div>
-  <div class="foot">Press H to hide</div>
+  <div class="tc">
+    <kbd>○ Stick</kbd><em>Move / turn</em>
+    <kbd>Drag</kbd><em>Look around</em>
+    <kbd>✋</kbd><em>Slap the nearest man</em>
+    <kbd>II</kbd><em>Pause</em>
+  </div>
+  <div class="foot kb">Press H to close</div>
 </div>
 
 <div id="stick"><span class="a u">▲</span><span class="a d">▼</span><span class="a l">◀</span><span class="a r">▶</span><div id="knob"></div></div>
@@ -119,6 +142,7 @@
 <div id="look" class="panel">⌖ DRAG TO LOOK AROUND</div>
 
 <div id="veil"><div>PAUSED<small>Press P or the button to continue</small></div></div>
+<div id="iostip" class="panel">For full screen: Share → Add to Home Screen<button id="iostipx" aria-label="Close">✕</button></div>
 <div id="loading">Loading the promenade…</div>
 
 <script>
@@ -152,7 +176,7 @@ const isEnemyKey = k => k.startsWith('frozen_') || /^walk_[a-z]/.test(k);
 const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k) && !isEnemyKey(k));   // core art first; slap frames decode in the background
 
 /* ---------- slap system ---------- */
-const SLAP = { cur: null, fx: null, target: null, next: 'A', lastSide: 1, ready: false };
+const SLAP = { cur: null, fx: null, target: null, frame: null, next: 'A', lastSide: 1, ready: false };
 const NEAR_RANGE = 1.8;                       // metres: closer than this -> near slap (A), else far slap (B)
 const SFX = {};
 for (const k of ['A', 'B']) { const u = ASSETS['sfx_slap' + k]; if (u) { SFX[k] = new Audio(u); SFX[k].preload = 'auto'; } }
@@ -184,7 +208,7 @@ function slapAuto() {
   if (best) { slapEnemy(best); return; }
   const k = SLAP.next; if (startSlap(k, sideNow())) SLAP.next = k === 'A' ? 'B' : 'A';
 }
-function slapEnemy(e) { if (!e || e.state !== 'walking' || !startSlap(e.clip, e.side)) return false; e.state = 'struck'; SLAP.target = e; return true; }
+function slapEnemy(e) { if (!e || e.state !== 'walking' || !startSlap(e.clip, e.side)) return false; e.state = 'struck'; SLAP.target = e; SLAP.frame = e; return true; }
 
 /* ---------- enemies ---------- */
 const enemies = [], EN = { ready: false, t: 2, last: '', lastSide: 1, count: 0 }, EN_IDS = ['thobe', 'tank', 'tee', 'hoodie', 'shirt', 'shemagh'];
@@ -213,7 +237,7 @@ function updateEnemies(dt) {
     EN.t -= dt;
     if (EN.t <= 0) EN.t = enemies.length < 6 && !spawnEnemy() ? 0.3 : enemies.length >= 6 ? 0.5 : 2 + Math.random() * 2.5;
   }
-  const camZ = P.z - cam.dz, hands = META_ENEMY._slapHand;
+  const camZ = P.z - cam.D, hands = META_ENEMY._slapHand;
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
     if (e.state === 'walking') {
@@ -223,8 +247,8 @@ function updateEnemies(dt) {
         e.x += d > m ? m : d < -m ? -m : d;
       }
     } else if (e.state === 'struck' || e.settle) {
-      const hd = hands[e.clip], tz = P.z + 0.15, ke = focal / (cam.dz + 0.15);
-      const tx = 0.82 * P.x + (P.x + e.side * hd.x_m - 0.82 * P.x) * (focal / cam.dz) / ke;
+      const hd = hands[e.clip], tz = P.z + 0.15, ke = focal / (cam.D + 0.15);
+      const tx = cam.x + (P.x + e.side * hd.x_m - cam.x) * (focal / cam.D) / ke;
       const f = e.settle ? 1 : 1 - Math.exp(-dt * 14);
       e.x += (tx - e.x) * f; e.z += (tz - e.z) * f; e.settle = 0;
     }
@@ -242,7 +266,7 @@ function drawEnemy(e, camZ) {
   if (!im) return;
   const dz = e.z - camZ; if (dz < 0.3) return;
   const k = focal / dz, sc = e.H / M.heightPx * k, w = im.width * sc, h = im.height * sc;
-  const sx = W / 2 + (e.x - P.x * 0.82) * k - yaw * focal;
+  const sx = W / 2 + (e.x - cam.x) * k - yaw * focal;
   if (sx + w < -20 || sx - w > W + 20) return;
   const base = cam.hz * H + cam.h * k;
   if (base - h > H) return;
@@ -522,7 +546,7 @@ function balBuild() {
 }
 const BAL_H = 1.1, drawList = [];
 function drawFacades(hz, camZ, c0, c1) {
-  const fogCol = `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`, camX = P.x * 0.82, mid = W / 2 - yaw * focal;
+  const fogCol = `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`, camX = cam.x, mid = W / 2 - yaw * focal;
   const lo = -2 - mid, hi = W + 2 - mid;
   let painted = 0;
   ctx.imageSmoothingQuality = 'low';
@@ -600,7 +624,7 @@ const CAM_PRESETS = [
   { h: 1.15, hz: 0.43, dz: 3.0 },   // low / heroic
 ];
 let camIdx = 0;
-const cam = { ...CAM_PRESETS[0] };
+const cam = { ...CAM_PRESETS[0], fx: 0, fdz: 0, x: 0, D: CAM_PRESETS[0].dz };   // x: lateral camera pos; D: effective distance (dz + framing pull-back fdz)
 const P = { x: 0, z: 0, vz: 0, vx: 0, phase: 0, face: 0 };
 let yaw = 0, dragging = null, lastLook = 0;
 let paused = false;
@@ -622,19 +646,24 @@ const FOG = [236, 220, 192];
 
 function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 1.75);
-  W = innerWidth; H = innerHeight;
+  const vv = window.visualViewport;
+  W = Math.round(vv && vv.width ? vv.width : innerWidth); H = Math.round(vv && vv.height ? vv.height : innerHeight);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   focal = Math.max(H, W * 0.56) * 0.95;
   g.w = Math.min(Math.round(W * 0.8), 860);
 }
-addEventListener('resize', resize);
+const resizeSoon = () => { resize(); setTimeout(resize, 120); setTimeout(resize, 450); };
+addEventListener('resize', resize); addEventListener('orientationchange', resizeSoon);
+if (window.visualViewport) { visualViewport.addEventListener('resize', resize); visualViewport.addEventListener('scroll', () => { scrollTo(0, 0); resize(); }); }
+addEventListener('scroll', () => scrollTo(0, 0));
+addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 
 function drawGround(hz) {
   const s = g.w / W;
   const gh = Math.max(2, Math.ceil((H - hz) * s));
   if (g.cv.height !== gh || g.cv.width !== g.w) { g.cv.width = g.w; g.cv.height = gh; g.img = g.ctx.createImageData(g.w, gh); }
   const out = g.img.data, tile = g.tile, tw = g.tw, th = g.th;
-  const camX = P.x * 0.82, camZ = P.z - cam.dz;
+  const camX = cam.x, camZ = P.z - cam.D;
   const yawOff = yaw * focal;
   for (let r = 0; r < gh; r++) {
     const dy = (r + 0.5) / s;
@@ -678,7 +707,7 @@ function drawBackdrop(hz) {
   const iw = Math.max(W * 1.4, H * 1.9), ih = iw * b.height / b.width;
   const lineY = 0.57;                      // fraction of the image that sits on the horizon
   const top = hz - ih * lineY;
-  const shift = -(yaw * focal * 0.5) - P.x * 6;
+  const shift = -(yaw * focal * 0.5) - cam.x * 7.32;
   let x0 = ((shift % (iw * 2)) + iw * 2) % (iw * 2) - iw * 2;
   for (let x = x0, n = 0; x < W; x += iw, n++) {
     const mirrored = (Math.round((x - x0) / iw) % 2) === 1;
@@ -695,9 +724,9 @@ function drawBackdrop(hz) {
 
 /* ---------- main draw ---------- */
 function proj(x, z) {
-  const dz = z - (P.z - cam.dz);
+  const dz = z - (P.z - cam.D);
   const k = focal / dz;
-  return { k, dz, sx: W / 2 + (x - P.x * 0.82) * k - yaw * focal, base: cam.hz * H + cam.h * k };
+  return { k, dz, sx: W / 2 + (x - cam.x) * k - yaw * focal, base: cam.hz * H + cam.h * k };
 }
 
 function frame(dt) {
@@ -705,7 +734,7 @@ function frame(dt) {
   drawBackdrop(hz);
   drawGround(hz);
 
-  const camZ = P.z - cam.dz;
+  const camZ = P.z - cam.D;
   const c0 = Math.floor((camZ - 12) / CHUNK), c1 = Math.floor((camZ + MAX_DRAW) / CHUNK);
   drawFacades(hz, camZ, c0, c1);
   const list = [];
@@ -724,7 +753,7 @@ function frame(dt) {
       const dz = it.z - camZ; if (dz < 1.5 || dz > 70) continue;
       const k = focal / dz;
       const w = 7.5 * k, hh = 5 * cam.h * focal / (dz * dz);
-      const sx = W / 2 + (it.x - it.side * 3.4 - P.x * 0.82) * k - yaw * focal;
+      const sx = W / 2 + (it.x - it.side * 3.4 - cam.x) * k - yaw * focal;
       const sy = hz + cam.h * k;
       ctx.globalAlpha = 0.55 * Math.min(1, (70 - dz) / 30);
       ctx.save(); ctx.translate(sx, sy); if (it.side < 0) ctx.scale(-1, 1);
@@ -781,7 +810,7 @@ function drawItem(it, camZ) {
   const im = IMG[t.key(it.v)]; if (!im) return;
   const dz = it.z - camZ, k = focal / dz;
   const h = it.h * k, w = h * im.width / im.height;
-  const sx = W / 2 + (it.x - P.x * 0.82) * k - yaw * focal;
+  const sx = W / 2 + (it.x - cam.x) * k - yaw * focal;
   if (sx + w / 2 < -20 || sx - w / 2 > W + 20) return;
   const base = cam.hz * H + cam.h * k;
   if (base - h > H) return;
@@ -840,6 +869,29 @@ function drawSlapFx() {
   ctx.fillStyle = '#ffc83a'; ctx.fillText('SLAP!', 0, 0); ctx.restore();
 }
 
+/* ---------- slap framing ---------- */
+function frameCam(dt) {
+  let tx = 0, td = 0;
+  const e = SLAP.frame, sl = SLAP.cur;
+  if (!sl) SLAP.frame = null;
+  if (e && sl) {
+    const M = META_SLAP[sl.kind], mpp = PLAYER_H / META.h, ME = META_ENEMY[e.id];
+    const pl = -M.pivot * M.w * mpp, pr = (1 - M.pivot) * M.w * mpp;              // clip extent around her pivot (metres)
+    const mc = e.side * META_ENEMY._slapHand[e.clip].x_m, mh = ME.frozen.w * e.H / ME.heightPx * 0.5;
+    const o = P.x * 0.18, xl = o + Math.min(sl.flip ? -pr : pl, mc - mh), xr = o + Math.max(sl.flip ? -pl : pr, mc + mh);   // relative to the unshifted camera
+    const lim = W * 0.42, hm = Math.max(e.H, PLAYER_H);
+    const Dh = hm > cam.h ? focal * (hm - cam.h) / (H * (cam.hz - 0.04)) : 0;     // keep heads below the top edge
+    const k0 = focal / cam.dz;
+    if (xl * k0 < -lim || xr * k0 > lim || Dh > cam.dz) {
+      tx = (xl + xr) / 2;
+      td = Math.max(0, Math.min(4, Math.max((xr - xl) / 2 * focal / lim, Dh) - cam.dz));
+    }
+  }
+  const f = 1 - Math.exp(-dt / (e && sl ? 0.2 : 0.6));
+  cam.fx += (tx - cam.fx) * f; cam.fdz += (td - cam.fdz) * f;
+  cam.x = P.x * 0.82 + cam.fx; cam.D = cam.dz + cam.fdz;
+}
+
 /* ---------- update ---------- */
 let lastDisplayed = -1;
 function update(dt) {
@@ -879,11 +931,11 @@ function update(dt) {
   const speed = Math.hypot(P.vz, P.vx * 0.5);
   P.phase += speed * dt / 2.4 * 24;                   // 24 video frames per stride (2.4 m) = natural 24 fps at walking pace
 
-  updateEnemies(dt);
-
-  // camera preset easing
+  // camera preset easing + slap framing (shift/pull-back so granma and the struck man both fit the screen)
   const cp = CAM_PRESETS[camIdx], ce = 1 - Math.exp(-dt * 5);
   cam.h += (cp.h - cam.h) * ce; cam.hz += (cp.hz - cam.hz) * ce; cam.dz += (cp.dz - cam.dz) * ce;
+  frameCam(dt);
+  updateEnemies(dt);
 
   // yaw recenters gently when not dragging
   if (!dragging && performance.now() - lastLook > 1200) yaw *= Math.exp(-dt * 1.4);
@@ -905,7 +957,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyJ') startSlap('A', sideNow());
   if (e.code === 'KeyK') startSlap('B', sideNow());
   if (e.code === 'Space' || e.code === 'KeyF') slapAuto();
-  if (e.code === 'KeyH') $('hint').style.opacity = $('hint').style.opacity === '0' ? '1' : '0';
+  if (e.code === 'KeyH') toggleHint();
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup', e => keys.delete(e.code));
@@ -913,6 +965,10 @@ addEventListener('blur', () => keys.clear());
 
 function togglePause() { paused = !paused; document.body.classList.toggle('paused', paused); if (!paused) last = performance.now(); }
 $('pause').addEventListener('click', togglePause);
+let hintT = 0, titleT = 0;
+function toggleHint() { const on = $('hint').classList.toggle('on'); clearTimeout(hintT); if (on) hintT = setTimeout(() => $('hint').classList.remove('on'), 8000); }
+$('helpbtn').addEventListener('click', toggleHint); $('hint').addEventListener('click', toggleHint);
+$('title').addEventListener('click', () => { const on = $('title').classList.toggle('big'); clearTimeout(titleT); if (on) titleT = setTimeout(() => $('title').classList.remove('big'), 4000); });
 
 // look-around by dragging the scene
 cv.addEventListener('pointerdown', e => {
@@ -952,7 +1008,34 @@ $('slapbtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPr
   el.addEventListener('pointercancel', reset);
 })();
 
-setTimeout(() => { if ($('look')) $('look').style.opacity = '0'; }, 14000);
+// fullscreen button / iOS home-screen tip
+(() => {
+  const de = document.documentElement, fsOn = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled), b = $('fs');
+  const cur = () => document.fullscreenElement || document.webkitFullscreenElement;
+  if (fsOn) {
+    b.hidden = false;
+    b.addEventListener('click', () => {
+      try {
+        if (cur()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        else {
+          const p = (de.requestFullscreen || de.webkitRequestFullscreen).call(de);
+          const lock = () => { try { if (screen.orientation && screen.orientation.lock && innerWidth > innerHeight) screen.orientation.lock('landscape').catch(() => {}); } catch (_) {} };
+          if (p && p.then) p.then(lock, () => {}); else lock();
+        }
+      } catch (_) {}
+    });
+    for (const ev of ['fullscreenchange', 'webkitfullscreenchange']) document.addEventListener(ev, resizeSoon);
+    return;
+  }
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  let seen = false; try { seen = localStorage.getItem('iosTipSeen') === '1'; } catch (_) {}
+  if (!ios || standalone || seen) return;
+  const tip = $('iostip'), hide = () => { tip.classList.remove('on'); try { localStorage.setItem('iosTipSeen', '1'); } catch (_) {} };
+  tip.classList.add('on'); $('iostipx').addEventListener('click', hide); setTimeout(hide, 6000);
+})();
+
+setTimeout(() => { if ($('look')) $('look').style.opacity = '0'; }, 6000);
 if (!isTouch) $('look').innerHTML = '⌖ DRAG TO LOOK AROUND';
 
 /* ---------- loop ---------- */
