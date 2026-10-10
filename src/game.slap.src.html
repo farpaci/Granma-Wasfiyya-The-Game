@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Mama Lulwa – Walk and Slap</title>
+<title>Mama Wasfiyya – Walk and Slap</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <style>
@@ -35,6 +35,15 @@
   #pause:active{transform:scale(.95)}
   #pause i{display:block;width:6px;height:22px;background:#fff;border-radius:2px;box-shadow:12px 0 0 #fff;margin-right:12px}
   body.paused #pause i{width:0;height:0;background:none;box-shadow:none;border-left:20px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent;border-radius:0;margin:0 0 0 6px}
+
+  /* narrow screens: the longer title gets its own row, HUD drops below it */
+  @media (max-width:640px){
+    #hud-r{top:calc(min(2vh,22px) + 70px)}
+    #title{padding:.45em 1em .4em}
+    #title b{font-size:clamp(20px,6.6vw,30px)}
+    #title i{font-size:clamp(9px,2.6vw,12px)}
+    #hint{top:calc(min(2vh,22px) + 150px)}
+  }
 
   /* Controls hint */
   #hint{position:fixed;right:min(2vw,26px);top:calc(min(2vh,22px) + 74px);padding:.8em 1.1em;font-size:14px;line-height:1.5;transition:opacity .6s}
@@ -78,7 +87,7 @@
 <body>
 <canvas id="game"></canvas>
 
-<div id="title"><b>MAMA LULWA</b><i>OVER THE SHOULDER (PROTOTYPE)</i></div>
+<div id="title"><b>MAMA WASFIYYA</b><i>OVER THE SHOULDER (PROTOTYPE)</i></div>
 
 <div id="hud-r">
   <div id="dist" class="panel"><small>DISTANCE</small><span id="distv">00000 m</span></div>
