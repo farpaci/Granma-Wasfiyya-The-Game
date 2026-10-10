@@ -200,9 +200,171 @@ function genChunk(c) {
       else add('stall', x, z, 1, 1.1);
     }
   }
+  // shopfront facades (generated after all props so prop placement is unchanged)
+  items.facades = [];
+  for (const side of [-1, 1]) {
+    let z = z0, i = 0;
+    while (z < z0 + CHUNK - 3) {
+      if (r() < 0.3) z += 1.5 + r() * 1.5;
+      const len = 6 + r() * 6, z2 = Math.min(z + len, z0 + CHUNK);
+      if (z2 - z < 3) break;
+      const floors = 1 + Math.floor(r() * 2), h = 4 + 3 * floors + 0.5 + r() * 0.5 + (r() < 0.4 ? 0.5 : 0);
+      items.facades.push({ side, z1: z, z2, h, floors, seed: Math.floor(r() * 4294967296), style: Math.floor(r() * 3), key: c + ':' + side + ':' + i++ });
+      z = z2;
+    }
+  }
   chunkCache.set(c, items);
   if (chunkCache.size > 14) chunkCache.delete(chunkCache.keys().next().value);
   return items;
+}
+
+/* ---------- facades ---------- */
+const FACADE_X = 17.5, PPM = 40;
+const facadeCache = new Map();
+const WALLS = ['#e9d8b4', '#d9b98a', '#c9785a', '#f1ece0', '#d8a84f', '#b9d3d6'];
+const SHOPS = ['CAFÉ مقهى', 'BAKERY مخبز', 'SPICES بهارات', 'PERFUME عطور', 'SWEETS حلويات', 'GOLD ذهب', 'TEA شاي', 'BOOKS كتب'];
+const SIGNS = ['#3b2418', '#1f3a2e', '#1d2f4d', '#6b1f26', '#2c2c34'];
+const AWN = [['#c43a2e', '#f4efe2'], ['#2f7d4f', '#f4efe2'], ['#2d5fa3', '#f4efe2'], ['#c9902f', '#c9902f'], ['#a8362b', '#a8362b']];
+const SHUT = ['#3f7a55', '#2f5f9a', '#6b4429', '#8a3b2c'];
+function facadeTex(b) {
+  let c = facadeCache.get(b.key); if (c) return c;
+  const L = b.z2 - b.z1, w = Math.round(L * PPM), H_ = Math.round(b.h * PPM);
+  c = document.createElement('canvas'); c.width = w; c.height = H_;
+  const x = c.getContext('2d'), rr = mulberry32(b.seed);
+  const R = (lo, hi) => lo + (hi - lo) * rr(), pick = a => a[Math.floor(rr() * a.length)];
+  const rect = (col, a, b2, c2, d) => { x.fillStyle = col; x.fillRect(a, b2, c2, d); };
+  const arch = (px, py, pw, ph) => { x.beginPath(); x.moveTo(px, py + ph); x.lineTo(px, py + pw / 2); x.arc(px + pw / 2, py + pw / 2, pw / 2, Math.PI, 0); x.lineTo(px + pw, py + ph); x.closePath(); };
+  const wall = pick(WALLS);
+  rect(wall, 0, 0, w, H_);
+  let g = x.createLinearGradient(0, 0, 0, H_);
+  g.addColorStop(0, 'rgba(255,248,225,0.22)'); g.addColorStop(0.5, 'rgba(255,248,225,0)'); g.addColorStop(1, 'rgba(60,35,15,0.28)');
+  rect(g, 0, 0, w, H_);
+  for (let i = 0; i < 26; i++) {
+    x.fillStyle = rr() < 0.6 ? `rgba(90,60,30,${R(0.03, 0.08)})` : `rgba(255,250,235,${R(0.05, 0.12)})`;
+    x.beginPath(); x.ellipse(R(0, w), R(0, H_), R(15, 70), R(10, 50), R(0, 3), 0, 6.3); x.fill();
+  }
+  for (let i = 0; i < 220; i++) rect(`rgba(70,45,25,${R(0.02, 0.07)})`, R(0, w), R(0, H_), R(1, 3), R(1, 3));
+  const gT = H_ - 4 * PPM;                           // top of ground floor
+  // upper floors
+  for (let f = 0; f < b.floors; f++) {
+    const yb = gT - 3 * PPM * f, n = Math.max(1, Math.floor(L / 2.5)), sp = w / n;
+    const arched = rr() < 0.5, shut = rr() < 0.55, sc = pick(SHUT), balc = rr() < 0.4;
+    for (let i = 0; i < n; i++) {
+      const cx = (i + 0.5) * sp, ww = 38, wh = 70, wx = cx - ww / 2, wy = yb - 32 - wh;
+      if (rr() < 0.12) continue;
+      rect('rgba(70,45,25,0.35)', wx - 4, wy - 2, ww + 8, wh + 8);
+      g = x.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, '#1d2a33'); g.addColorStop(1, '#3d5560');
+      x.fillStyle = g; if (arched) arch(wx, wy, ww, wh); else { x.beginPath(); x.rect(wx, wy, ww, wh); } x.fill();
+      x.strokeStyle = 'rgba(240,230,205,0.8)'; x.lineWidth = 2; x.stroke();
+      x.fillStyle = 'rgba(255,255,255,0.12)'; x.beginPath(); x.moveTo(wx + 4, wy + wh); x.lineTo(wx + 16, wy + 6); x.lineTo(wx + 24, wy + 6); x.lineTo(wx + 12, wy + wh); x.fill();
+      rect('rgba(240,230,205,0.7)', wx + ww / 2 - 1, wy + (arched ? ww / 2 : 0), 2, wh);
+      if (shut) { rect(sc, wx - 11, wy + (arched ? 8 : 0), 10, wh - (arched ? 8 : 0)); rect(sc, wx + ww + 1, wy + (arched ? 8 : 0), 10, wh - (arched ? 8 : 0));
+        for (let s = 0; s < 6; s++) { rect('rgba(0,0,0,0.25)', wx - 11, wy + 12 + s * 9, 10, 1.5); rect('rgba(0,0,0,0.25)', wx + ww + 1, wy + 12 + s * 9, 10, 1.5); } }
+      rect('rgba(240,230,205,0.85)', wx - 4, wy + wh, ww + 8, 4);
+      if (balc) {
+        const bx = wx - 12, bw = ww + 24, by = yb - 32;
+        rect('#b9ab92', bx - 3, by + 2, bw + 6, 6); rect('rgba(0,0,0,0.25)', bx - 3, by + 8, bw + 6, 4);
+        x.strokeStyle = '#1e1a18'; x.lineWidth = 1.5; x.beginPath();
+        for (let k = 0; k <= 10; k++) { x.moveTo(bx + k * bw / 10, by + 2); x.lineTo(bx + k * bw / 10, by - 20); }
+        x.moveTo(bx, by - 20); x.lineTo(bx + bw, by - 20); x.moveTo(bx, by - 8); x.lineTo(bx + bw, by - 8); x.stroke();
+        for (let k = 0; k < 2; k++) { const px = bx + 8 + k * (bw - 24); rect('#a65a38', px, by - 10, 8, 10); x.fillStyle = '#4c8a3c'; x.beginPath(); x.arc(px + 4, by - 14, 7, 0, 6.3); x.fill(); }
+      }
+    }
+  }
+  // cornice
+  const yTop = gT - 3 * PPM * b.floors;
+  rect('rgba(70,45,25,0.22)', 0, yTop - 14, w, 14); g = x.createLinearGradient(0, yTop - 14, 0, yTop - 2);
+  g.addColorStop(0, 'rgba(50,30,15,0.35)'); g.addColorStop(1, 'rgba(50,30,15,0)'); rect(g, 0, yTop - 14, w, 14);
+  rect('#efe3c6', 0, yTop - 22, w, 8); rect('#d9c9a5', 0, yTop - 16, w, 3); rect('rgba(40,25,10,0.4)', 0, yTop - 14, w, 2);
+  rect('rgba(255,250,235,0.35)', 0, yTop - 22, w, 1.5);
+  if (b.style === 2 && yTop - 22 > 12) for (let px = 12; px < w - 24; px += 36) rect('rgba(70,45,25,0.22)', px, 5, 22, yTop - 22 - 10);
+  rect('rgba(70,45,25,0.25)', 0, 0, w, 2);
+  // ground floor
+  g = x.createLinearGradient(0, gT, 0, H_); g.addColorStop(0, 'rgba(40,25,10,0.18)'); g.addColorStop(1, 'rgba(40,25,10,0)'); rect(g, 0, gT, w, 160);
+  rect('rgba(60,40,20,0.3)', 0, gT - 1, w, 3);
+  rect('#9a8c78', 0, H_ - 12, w, 12); rect('rgba(0,0,0,0.22)', 0, H_ - 12, w, 2);
+  const nb = L > 8.2 && rr() < 0.7 ? 2 : 1, bwid = w / nb, name = pick(SHOPS);
+  for (let k = 0; k < nb; k++) {
+    const bx = k * bwid + 14, bw = bwid - 28, nm = nb > 1 ? pick(SHOPS) : name;
+    const door = bw > 150, dw = 46, winW = bw - (door ? dw + 14 : 0), dside = rr() < 0.5;
+    const winX = bx + (door && dside ? dw + 14 : 0), doorX = dside ? bx : bx + winW + 14;
+    // sign
+    const sc = pick(SIGNS), sy = gT + 8;
+    rect(sc, bx, sy, bw, 30); x.strokeStyle = '#c9a24a'; x.lineWidth = 2; x.strokeRect(bx + 2, sy + 2, bw - 4, 26);
+    let fs = 20; x.font = `bold ${fs}px "Trebuchet MS",Arial,sans-serif`;
+    const tw = x.measureText(nm).width; if (tw > bw - 14) { fs = Math.max(8, fs * (bw - 14) / tw); x.font = `bold ${fs}px "Trebuchet MS",Arial,sans-serif`; }
+    x.fillStyle = '#f3e6c4'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(nm, bx + bw / 2, sy + 16);
+    // display window
+    const wy = gT + 66, wh = 160 - 66 - 18;
+    rect('#6b5a48', winX - 3, wy - 3, winW + 6, wh + 6);
+    g = x.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, '#16222a'); g.addColorStop(1, '#4a5f66');
+    rect(g, winX, wy, winW, wh);
+    for (let q = 0; q < 4; q++) rect(`rgba(${pick(['230,170,90', '200,90,70', '240,220,160'])},0.35)`, winX + R(6, winW - 30), wy + wh - R(12, 30), R(10, 24), R(8, 22));
+    x.fillStyle = 'rgba(255,255,255,0.16)'; x.beginPath(); x.moveTo(winX + winW * 0.15, wy + wh); x.lineTo(winX + winW * 0.15 + 26, wy); x.lineTo(winX + winW * 0.15 + 42, wy); x.lineTo(winX + winW * 0.15 + 16, wy + wh); x.fill();
+    // door
+    if (door) {
+      const dy = gT + 48, dh = 160 - 48 - 12;
+      x.fillStyle = pick(['#5b3a22', '#3f2a1c', '#2f5f46']); if (rr() < 0.5) arch(doorX, dy, dw, dh); else { x.beginPath(); x.rect(doorX, dy, dw, dh); } x.fill();
+      x.strokeStyle = 'rgba(230,210,170,0.7)'; x.lineWidth = 2; x.stroke();
+      rect('rgba(0,0,0,0.25)', doorX + dw / 2 - 1, dy + dw / 2, 2, dh - dw / 2); rect('#d8b25a', doorX + dw - 9, dy + dh * 0.55, 4, 4);
+      rect('rgba(30,50,60,0.7)', doorX + 8, dy + dw * 0.7, dw - 16, 22);
+    }
+    // awning
+    const ay = gT + 40, ah = 22, col = pick(AWN), sw = 14, ax = bx - 6, aw = bw + 12;
+    for (let s = 0; s * sw < aw; s++) {
+      const sx0 = ax + s * sw, ww = Math.min(sw, aw - s * sw);
+      x.fillStyle = s % 2 ? col[1] : col[0]; x.fillRect(sx0, ay, ww, ah);
+      x.beginPath(); x.arc(sx0 + ww / 2, ay + ah, ww / 2, 0, Math.PI); x.fill();
+    }
+    g = x.createLinearGradient(0, ay, 0, ay + ah + 8); g.addColorStop(0, 'rgba(255,255,255,0.18)'); g.addColorStop(0.7, 'rgba(0,0,0,0.12)'); g.addColorStop(1, 'rgba(0,0,0,0.25)');
+    rect(g, ax, ay, aw, ah + 7);
+    g = x.createLinearGradient(0, ay + ah + 6, 0, ay + ah + 30); g.addColorStop(0, 'rgba(20,10,0,0.4)'); g.addColorStop(1, 'rgba(20,10,0,0)');
+    rect(g, ax + 4, ay + ah + 6, aw - 8, 24);
+  }
+  if (b.side < 0) rect('rgba(40,22,10,0.16)', 0, 0, w, H_);
+  facadeCache.set(b.key, c);
+  if (facadeCache.size > 60) facadeCache.delete(facadeCache.keys().next().value);
+  return c;
+}
+
+const wallOf = b => WALLS[Math.floor(mulberry32(b.seed)() * WALLS.length)];
+function drawFacades(hz, camZ, c0, c1) {
+  const fogCol = `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`, camX = P.x * 0.82, mid = W / 2 - yaw * focal;
+  const lo = -2 - mid, hi = W + 2 - mid;
+  let painted = 0;
+  ctx.imageSmoothingQuality = 'low';
+  for (let c = c0; c <= c1; c++) for (const b of genChunk(c).facades) {
+    const wallX = b.side * FACADE_X - camX, A = wallX * focal, left = b.side < 0;
+    let dmin = 0, dmax = 1e9;
+    if (A > 0) { if (hi <= 0) continue; dmin = A / hi; if (lo > 0) dmax = A / lo; }
+    else { if (lo >= 0) continue; dmin = A / lo; if (hi < 0) dmax = A / hi; }
+    const za = Math.max(b.z1, camZ + 1, camZ + dmin), zb = Math.min(b.z2, camZ + MAX_DRAW, camZ + dmax);
+    if (zb <= za) continue;
+    let tex = facadeCache.get(b.key);
+    if (!tex && painted < 1) { tex = facadeTex(b); painted++; }
+    const th = tex ? tex.height : 0;
+    if (!tex) { ctx.fillStyle = wallOf(b); }
+    for (let z = za; z < zb;) {
+      const dz = z - camZ;
+      const dzs = Math.min(zb - z, Math.min(3, Math.max(0.08, 6 * dz * dz / (FACADE_X * focal))));
+      const k1 = focal / dz, k2 = focal / (dz + dzs), km = focal / (dz + dzs / 2);
+      const s1 = mid + wallX * k1, s2 = mid + wallX * k2;
+      const l = Math.min(s1, s2), sw = Math.abs(s1 - s2) + 0.6;
+      const base = hz + cam.h * km, top = base - b.h * km;
+      if (top < H && base > 0) {
+        const a = dz > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dz) / 35) : 1;
+        ctx.globalAlpha = a;
+        if (tex) {
+          const za2 = z - b.z1, ua = (left ? za2 : (b.z2 - b.z1) - za2 - dzs) * PPM;
+          ctx.drawImage(tex, ua, 0, dzs * PPM, th, l, top, sw, base - top);
+        } else ctx.fillRect(l, top, sw, base - top);
+        const fogA = Math.min(0.5, Math.max(0, (dz - 22) / 170)) * a;
+        if (fogA > 0.02) { const ps = ctx.fillStyle; ctx.fillStyle = fogCol; ctx.globalAlpha = fogA; ctx.fillRect(l, top, sw, base - top); ctx.fillStyle = ps; }
+      }
+      z += dzs;
+    }
+  }
+  ctx.globalAlpha = 1; ctx.imageSmoothingQuality = 'high';
 }
 
 /* ---------- state ---------- */
@@ -319,6 +481,7 @@ function frame(dt) {
 
   const camZ = P.z - cam.dz;
   const c0 = Math.floor((camZ - 12) / CHUNK), c1 = Math.floor((camZ + MAX_DRAW) / CHUNK);
+  drawFacades(hz, camZ, c0, c1);
   const list = [];
   for (let c = c0; c <= c1; c++) for (const it of genChunk(c)) {
     const dz = it.z - camZ;
