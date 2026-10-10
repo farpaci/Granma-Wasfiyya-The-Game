@@ -1,12 +1,8 @@
 import cv2, numpy as np, json, os
 from scipy import ndimage
 from PIL import Image
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
-os.makedirs(os.path.join(ROOT, 'work', 'video'), exist_ok=True)
-os.chdir(os.path.join(ROOT, 'work', 'video'))  # raw/ in, keyed/ walk_png/ out
-OUT = os.path.join(ROOT, 'assets_video')
 START, N = 27, 24
-os.makedirs('walk_png', exist_ok=True); os.makedirs(OUT, exist_ok=True)
+os.makedirs('walk_png', exist_ok=True); os.makedirs('/home/claude/game/assets_video', exist_ok=True)
 frames = [cv2.imread(f'keyed/k_{i:03d}.png', cv2.IMREAD_UNCHANGED) for i in range(START, START+N)]
 H, W = frames[0].shape[:2]
 boxes = []
@@ -37,15 +33,15 @@ for n, f in enumerate(frames):
     f = defringe(f)[y0:y1, x0:x1]
     img = Image.fromarray(f[..., [2,1,0,3]])
     img.save(f'walk_png/walk_{n:02d}.png', optimize=True)
-    img.save(f'{OUT}/walk_{n:02d}.webp', quality=90, method=6)
+    img.save(f'/home/claude/game/assets_video/walk_{n:02d}.webp', quality=90, method=6)
     a = f[...,3] > 128; ys = np.where(a.any(axis=1))[0]; h = ys.max()-ys.min()
     lo = a[ys.max()-int(.14*h):ys.max()+1]            # feet band
     cols = np.where(lo.any(axis=0))[0]
     gap.append(cols.max()-cols.min())
 idle = int(np.argmin(gap))
 meta = dict(n=N, w=int(x1-x0), h=int(y1-y0), pivot=pivot, idle=idle, src=f'frames {START}-{START+N-1} @24fps')
-json.dump(meta, open(f'{OUT}/meta.json','w')); print(meta)
-sz = sum(os.path.getsize(f'{OUT}/walk_{n:02d}.webp') for n in range(N)); print('webp total KB', sz//1024)
+json.dump(meta, open('/home/claude/game/assets_video/meta.json','w')); print(meta)
+sz = sum(os.path.getsize(f'/home/claude/game/assets_video/walk_{n:02d}.webp') for n in range(N)); print('webp total KB', sz//1024)
 # contact strip
 strip = Image.new('RGB', ((x1-x0)//3*8+10, (y1-y0)//3*3+10), (190,0,190))
 for n in range(N):

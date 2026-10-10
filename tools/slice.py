@@ -6,9 +6,8 @@ try:
 except Exception:
     ndimage = None
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
-SRC = os.path.join(ROOT, 'art', 'source', 'props_sheet.png')
-OUT = os.path.join(ROOT, 'assets')
+SRC = '/home/claude/game/work/sheet.png'
+OUT = '/home/claude/game/assets'
 os.makedirs(OUT, exist_ok=True)
 sheet = Image.open(SRC).convert('RGB')
 A = np.asarray(sheet).astype(np.float32)

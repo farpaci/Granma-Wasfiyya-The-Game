@@ -1,8 +1,5 @@
 import cv2, numpy as np, glob, os, sys
 from scipy import ndimage
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
-os.makedirs(os.path.join(ROOT, 'work', 'video'), exist_ok=True)
-os.chdir(os.path.join(ROOT, 'work', 'video'))  # raw/ in, keyed/ walk_png/ out
 os.makedirs('keyed', exist_ok=True)
 
 def disk(r): return cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2*r+1,2*r+1))

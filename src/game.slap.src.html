@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mama Lulwa – Walk and Slap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --wood-1:#7a2a1c; --wood-2:#4d1810; --cream:#fff3d6; --gold:#ffc83a; --ink:#2a0d08;
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#1a1410;overflow:hidden;font-family:'Baloo 2',system-ui,sans-serif;touch-action:none}
+  #game{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+  /* Title sign */
+  #title{position:fixed;left:min(2vw,28px);top:min(2vh,22px);padding:.55em 1.3em .5em;
+    background:linear-gradient(180deg,var(--wood-1),var(--wood-2));
+    border:3px solid #2e0f09;border-radius:12px;box-shadow:0 6px 0 #2a0c07,0 10px 24px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.18);
+    text-align:center;transform:rotate(-1.2deg);pointer-events:none}
+  #title b{display:block;font-family:'Lilita One','Baloo 2',Impact,sans-serif;font-weight:400;letter-spacing:.04em;
+    font-size:clamp(22px,4.2vw,54px);line-height:1;color:var(--cream);
+    -webkit-text-stroke:2px #2a0d08;paint-order:stroke fill;text-shadow:0 3px 0 #2a0d08}
+  #title i{display:block;font-style:normal;font-family:'Lilita One','Baloo 2',Impact,sans-serif;letter-spacing:.05em;
+    font-size:clamp(10px,1.5vw,19px);color:var(--gold);margin-top:.15em;text-shadow:0 2px 0 #2a0d08}
+
+  /* HUD right */
+  #hud-r{position:fixed;right:min(2vw,26px);top:min(2vh,22px);display:flex;gap:10px;align-items:stretch}
+  .panel{background:rgba(20,28,36,.62);border:1px solid rgba(255,255,255,.16);border-radius:12px;backdrop-filter:blur(6px);color:#fff}
+  #dist{padding:.35em .9em .3em;text-align:left;min-width:150px}
+  #dist small{display:block;font-size:11px;letter-spacing:.14em;opacity:.85;font-weight:800}
+  #dist span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(24px,3vw,36px);letter-spacing:.04em;line-height:1.05}
+  #pause{width:54px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(20,28,36,.62);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(6px)}
+  #pause:active{transform:scale(.95)}
+  #pause i{display:block;width:6px;height:22px;background:#fff;border-radius:2px;box-shadow:12px 0 0 #fff;margin-right:12px}
+  body.paused #pause i{width:0;height:0;background:none;box-shadow:none;border-left:20px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent;border-radius:0;margin:0 0 0 6px}
+
+  /* Controls hint */
+  #hint{position:fixed;right:min(2vw,26px);top:calc(min(2vh,22px) + 74px);padding:.8em 1.1em;font-size:14px;line-height:1.5;transition:opacity .6s}
+  #hint h4{margin:0 0 .3em;font-size:15px}
+  #hint div{display:grid;grid-template-columns:78px 1fr;gap:0 10px}
+  #hint kbd{font-family:inherit;font-weight:800;opacity:.95}
+  #hint em{font-style:normal;opacity:.85}
+  #hint .foot{opacity:.6;font-size:12px;margin-top:.4em}
+  body.touch #hint{display:none}
+
+  /* Joystick */
+  #stick{position:fixed;left:max(3vw,22px);bottom:max(4vh,22px);width:clamp(110px,16vmin,168px);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.22),rgba(40,40,40,.45));border:2px solid rgba(255,255,255,.55);
+    box-shadow:0 4px 18px rgba(0,0,0,.3);touch-action:none}
+  #stick .a{position:absolute;color:rgba(255,255,255,.8);font-size:clamp(11px,1.8vmin,18px);line-height:1}
+  #stick .a.u{left:50%;top:7%;transform:translateX(-50%)} #stick .a.d{left:50%;bottom:7%;transform:translateX(-50%)}
+  #stick .a.l{left:7%;top:50%;transform:translateY(-50%)} #stick .a.r{right:7%;top:50%;transform:translateY(-50%)}
+  #knob{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;margin:-23% 0 0 -23%;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#fff,#d9d9d9 55%,#a9a9a9);box-shadow:0 3px 10px rgba(0,0,0,.45)}
+
+  /* look hint */
+  #look{position:fixed;right:min(2vw,26px);bottom:max(4vh,22px);display:flex;align-items:center;gap:.7em;padding:.7em 1.1em;
+    font-weight:800;letter-spacing:.07em;font-size:13px;transition:opacity .8s}
+
+  /* slap button */
+  #slapbtn{position:fixed;right:min(2vw,26px);bottom:calc(max(4vh,22px) + 62px);width:clamp(76px,12vmin,104px);aspect-ratio:1;border-radius:50%;
+    border:4px solid var(--gold);background:radial-gradient(circle at 40% 30%,#c8402e,#7a1d14 70%);box-shadow:0 5px 0 #4a0f08,0 10px 22px rgba(0,0,0,.4);
+    display:grid;place-items:center;cursor:pointer;touch-action:none;font-size:clamp(34px,6vmin,54px);line-height:1;padding:0;transition:opacity .3s}
+  #slapbtn:active{transform:translateY(3px) scale(.96);box-shadow:0 2px 0 #4a0f08}
+  #slapbtn[disabled]{opacity:.4}
+  #slapbtn span{display:block;transform:rotate(-8deg);filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+
+  /* pause + loading */
+  #veil{position:fixed;inset:0;display:none;place-items:center;background:rgba(20,10,5,.45);backdrop-filter:blur(3px)}
+  body.paused #veil{display:grid}
+  #veil div{font-family:'Lilita One',sans-serif;font-size:clamp(34px,7vw,80px);color:var(--cream);-webkit-text-stroke:3px #2a0d08;paint-order:stroke fill;text-align:center;line-height:1.05}
+  #veil small{display:block;font-family:'Baloo 2',sans-serif;font-size:16px;-webkit-text-stroke:0;margin-top:.6em;opacity:.9}
+  #loading{position:fixed;inset:0;display:grid;place-items:center;background:#1a1410;color:#fff3d6;font-family:'Lilita One',sans-serif;font-size:28px;letter-spacing:.06em;z-index:9}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="title"><b>MAMA LULWA</b><i>OVER THE SHOULDER (PROTOTYPE)</i></div>
+
+<div id="hud-r">
+  <div id="dist" class="panel"><small>DISTANCE</small><span id="distv">00000 m</span></div>
+  <button id="pause" aria-label="Pause"><i></i></button>
+</div>
+
+<div id="hint" class="panel">
+  <h4>Prototype (no enemies yet)</h4>
+  <div>
+    <kbd>W / ↑</kbd><em>Move forward</em>
+    <kbd>A / ←</kbd><em>Move left</em>
+    <kbd>D / →</kbd><em>Move right</em>
+    <kbd>Mouse</kbd><em>Look around (drag)</em>
+    <kbd>Q / E</kbd><em>Change camera angle</em>
+    <kbd>Space</kbd><em>Slap (near / far)</em>
+    <kbd>J / K</kbd><em>Near / far slap</em>
+    <kbd>P</kbd><em>Pause</em>
+  </div>
+  <div class="foot">Press H to hide</div>
+</div>
+
+<div id="stick"><span class="a u">▲</span><span class="a d">▼</span><span class="a l">◀</span><span class="a r">▶</span><div id="knob"></div></div>
+<button id="slapbtn" aria-label="Slap" disabled><span>✋</span></button>
+<div id="look" class="panel">⌖ DRAG TO LOOK AROUND</div>
+
+<div id="veil"><div>PAUSED<small>Press P or the button to continue</small></div></div>
+<div id="loading">Loading the promenade…</div>
+
+<script>
+/*ASSETS*/
+</script>
+<script>
+(() => {
+'use strict';
+const cv = document.getElementById('game');
+const ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+if (isTouch) document.body.classList.add('touch');
+
+/* ---------- assets ---------- */
+const IMG = {};
+const isSlapKey = k => k.startsWith('slap');
+const isSfxKey = k => k.startsWith('sfx_');
+function loadKeys(keep) {
+  return Promise.all(Object.entries(ASSETS).filter(([k]) => keep(k)).map(([k, src]) => new Promise(res => {
+    const im = new Image();
+    im.onload = () => { IMG[k] = im; res(); };
+    im.onerror = () => { console.warn('asset failed', k); res(); };
+    im.src = src;
+  })));
+}
+const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k));   // core art first; slap frames decode in the background
+
+/* ---------- slap system ---------- */
+const SLAP = { cur: null, fx: null, next: 'A', lastSide: 1, ready: false };
+const NEAR_RANGE = 1.8;                       // metres: closer than this -> near slap (A), else far slap (B)
+const SFX = {};
+for (const k of ['A', 'B']) { const u = ASSETS['sfx_slap' + k]; if (u) { SFX[k] = new Audio(u); SFX[k].preload = 'auto'; } }
+function playSlap(k) { const a = SFX[k]; if (!a) return; const c = a.cloneNode(); c.volume = 0.9; c.play().catch(() => {}); }
+function startSlap(kind, side) {              // kind 'A' near | 'B' far; side -1 left | +1 right (left = mirrored clip)
+  if (SLAP.cur || paused || !SLAP.ready) return false;
+  SLAP.cur = { kind, side, flip: side < 0, t: 0, hit: false };
+  return true;
+}
+function slapAt(enemy) {                      // hook for the enemy system: enemy = { x, z } in world metres
+  const dx = enemy.x - P.x, dz = enemy.z - P.z;
+  return startSlap(Math.hypot(dx, dz) < NEAR_RANGE ? 'A' : 'B', dx < 0 ? -1 : 1);
+}
+function sideNow() {
+  if (keys.has('KeyA') || keys.has('ArrowLeft')) return -1;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) return 1;
+  if (joy.x < -0.2) return -1; if (joy.x > 0.2) return 1;
+  return SLAP.lastSide;
+}
+function slapAuto() { const k = SLAP.next; if (startSlap(k, sideNow())) SLAP.next = k === 'A' ? 'B' : 'A'; }
+
+/* ---------- world definition (sizes in metres) ---------- */
+const TYPES = {
+  palm:   { key: v => 'palm' + v,   h: [9.5, 12] },
+  arch:   { key: v => 'arch' + v,   h: [9.6, 9.6] },
+  cafe:   { key: v => 'cafe' + v,   h: [3.1, 3.3] },
+  board:  { key: v => 'board' + v,  h: [1.15, 1.3] },
+  stall:  { key: v => 'stall',      h: [3.0, 3.2] },
+  planter:{ key: v => 'planter' + v,h: [0.95, 1.2] },
+  bench:  { key: v => 'bench' + v,  h: [1.05, 1.15] },
+  lamp:   { key: v => 'lamp' + v,   h: [3.3, 3.5] },
+  bin:    { key: v => 'bin' + v,    h: [0.95, 1.05] },
+};
+const COUNTS = { palm: 4, arch: 3, cafe: 3, board: 3, stall: 1, planter: 4, bench: 2, lamp: 3, bin: 2 };
+const CHUNK = 48;
+const PLAYER_H = 1.85;
+const STREET_HALF = 3.4;     // walkable half-width
+const MAX_DRAW = 125;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+const chunkCache = new Map();
+function genChunk(c) {
+  if (chunkCache.has(c)) return chunkCache.get(c);
+  const r = mulberry32(c * 7919 + 1337);
+  const rv = n => 1 + Math.floor(r() * n);
+  const items = [];
+  const add = (type, x, z, v, scale) => {
+    const t = TYPES[type];
+    items.push({ type, x, z, v: v || 1, h: (t.h[0] + (t.h[1] - t.h[0]) * r()) * (scale || 1), side: Math.sign(x) || 1 });
+  };
+  const z0 = c * CHUNK;
+  // arch spanning the street
+  add('arch', 0, z0 + 30, ((c % 3) + 3) % 3 + 1);
+  for (const side of [-1, 1]) {
+    // palm avenue
+    for (let k = 0; k < 4; k++) {
+      add('palm', side * (5.0 + r() * 0.9), z0 + k * 12 + (side > 0 ? 6 : 0) + r() * 3, rv(4));
+    }
+    // street furniture
+    let lastStall = -9;
+    for (let k = 0; k < 6; k++) {
+      const z = z0 + k * 8 + (side > 0 ? 3.5 : 0.5) + r() * 2;
+      const roll = r();
+      if (roll < 0.32) {
+        add('cafe', side * (6.7 + r() * 1.1), z, rv(3));
+        add('board', side * (4.75 + r() * 0.2), z - 1.2, rv(3));
+      } else if (roll < 0.5) {
+        add('planter', side * (4.6 + r() * 0.35), z, rv(4));
+        if (r() < 0.6) add('planter', side * (4.6 + r() * 0.35), z + 2.2, rv(4));
+      } else if (roll < 0.66) {
+        add('bench', side * 4.9, z, rv(2));
+      } else if (roll < 0.8) {
+        add('lamp', side * 4.45, z, rv(3));
+      } else if (roll < 0.9) {
+        add('bin', side * 4.6, z, rv(2));
+      } else if (k - lastStall > 2) {
+        add('stall', side * 7.9, z, 1); lastStall = k;
+      } else {
+        add('planter', side * 4.7, z, rv(4));
+      }
+    }
+    // regular lamps
+    add('lamp', side * 4.2, z0 + 20 + (side > 0 ? 3 : 0), rv(3));
+    // deeper plaza layer
+    for (let k = 0; k < 4; k++) {
+      const z = z0 + k * 12 + r() * 8;
+      const roll = r();
+      const x = side * (10.5 + r() * 4);
+      if (roll < 0.5) add('palm', x, z, rv(4), 1.05);
+      else if (roll < 0.82) add('cafe', x, z, rv(3), 1.1);
+      else add('stall', x, z, 1, 1.1);
+    }
+  }
+  chunkCache.set(c, items);
+  if (chunkCache.size > 14) chunkCache.delete(chunkCache.keys().next().value);
+  return items;
+}
+
+/* ---------- state ---------- */
+const CAM_PRESETS = [
+  { h: 1.9, hz: 0.385, dz: 3.5 },   // over the shoulder
+  { h: 3.3, hz: 0.27,  dz: 5.4 },   // high
+  { h: 1.15, hz: 0.43, dz: 3.0 },   // low / heroic
+];
+let camIdx = 0;
+const cam = { ...CAM_PRESETS[0] };
+const P = { x: 0, z: 0, vz: 0, vx: 0, phase: 0, face: 0 };
+let yaw = 0, dragging = null, lastLook = 0;
+let paused = false;
+let W = 0, H = 0, DPR = 1, focal = 1;
+const keys = new Set();
+const joy = { x: 0, y: 0 };
+
+/* ---------- ground renderer (low-res, perspective) ---------- */
+const g = { cv: document.createElement('canvas'), ctx: null, w: 0, h: 0, img: null, tile: null, tw: 0, th: 0 };
+g.ctx = g.cv.getContext('2d', { willReadFrequently: true });
+function buildTile() {
+  const im = IMG.paving;
+  const c = document.createElement('canvas'); c.width = g.tw = im.width; c.height = g.th = im.height;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0);
+  g.tile = x.getImageData(0, 0, c.width, c.height).data;
+}
+const TILE_M = 2.4;
+const FOG = [236, 220, 192];
+
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 1.75);
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  focal = Math.max(H, W * 0.56) * 0.95;
+  g.w = Math.min(Math.round(W * 0.8), 860);
+}
+addEventListener('resize', resize);
+
+function drawGround(hz) {
+  const s = g.w / W;
+  const gh = Math.max(2, Math.ceil((H - hz) * s));
+  if (g.cv.height !== gh || g.cv.width !== g.w) { g.cv.width = g.w; g.cv.height = gh; g.img = g.ctx.createImageData(g.w, gh); }
+  const out = g.img.data, tile = g.tile, tw = g.tw, th = g.th;
+  const camX = P.x * 0.82, camZ = P.z - cam.dz;
+  const yawOff = yaw * focal;
+  for (let r = 0; r < gh; r++) {
+    const dy = (r + 0.5) / s;
+    const z = cam.h * focal / dy;
+    const wz = camZ + z;
+    const fz = wz / TILE_M, tz = Math.floor(fz);
+    const ty = Math.floor((fz - tz) * th) % th;
+    const fog = Math.min(0.9, Math.max(0, (z - 10) / 85));
+    const k = z / focal;
+    let o = r * g.w * 4;
+    for (let c = 0; c < g.w; c++) {
+      const sx = (c + 0.5) / s;
+      const wx = camX + (sx - W / 2 + yawOff) * k;
+      const fx = wx / TILE_M, tx0 = Math.floor(fx);
+      const tx = Math.floor((fx - tx0) * tw) % tw;
+      const i = (ty * tw + tx) * 4;
+      // per-tile brightness variation breaks up repetition
+      const hsh = (Math.imul(tx0 * 73856093 ^ tz * 19349663, 2654435761) >>> 24) / 255;
+      const lit = 0.93 + hsh * 0.11;
+      let rr = tile[i] * lit, gg = tile[i + 1] * lit, bb = tile[i + 2] * lit;
+      // slightly warmer, darker plaza outside the main walkway
+      const ax = Math.abs(wx);
+      if (ax > 4.1) { const q = Math.min(1, (ax - 4.1) / 2) * 0.1; rr *= 1 - q; gg *= 1 - q * 1.1; bb *= 1 - q * 1.3; }
+      out[o++] = rr + (FOG[0] - rr) * fog;
+      out[o++] = gg + (FOG[1] - gg) * fog;
+      out[o++] = bb + (FOG[2] - bb) * fog;
+      out[o++] = 255;
+    }
+  }
+  g.ctx.putImageData(g.img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(g.cv, 0, hz, W, H - hz + 1);
+}
+
+/* ---------- backdrop ---------- */
+function drawBackdrop(hz) {
+  const sky = ctx.createLinearGradient(0, 0, 0, hz);
+  sky.addColorStop(0, '#2f8fe0'); sky.addColorStop(1, '#bfe4fb');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, hz + 2);
+  const b = IMG.backdrop; if (!b) return;
+  const iw = Math.max(W * 1.4, H * 1.9), ih = iw * b.height / b.width;
+  const lineY = 0.57;                      // fraction of the image that sits on the horizon
+  const top = hz - ih * lineY;
+  const shift = -(yaw * focal * 0.5) - P.x * 6;
+  let x0 = ((shift % (iw * 2)) + iw * 2) % (iw * 2) - iw * 2;
+  for (let x = x0, n = 0; x < W; x += iw, n++) {
+    const mirrored = (Math.round((x - x0) / iw) % 2) === 1;
+    ctx.save();
+    if (mirrored) { ctx.translate(x + iw, top); ctx.scale(-1, 1); ctx.drawImage(b, 0, 0, iw, ih); }
+    else ctx.drawImage(b, x, top, iw, ih);
+    ctx.restore();
+  }
+  // haze on the horizon line
+  const hg = ctx.createLinearGradient(0, hz - ih * 0.18, 0, hz + 4);
+  hg.addColorStop(0, 'rgba(236,220,192,0)'); hg.addColorStop(1, 'rgba(236,220,192,0.75)');
+  ctx.fillStyle = hg; ctx.fillRect(0, hz - ih * 0.18, W, ih * 0.18 + 4);
+}
+
+/* ---------- main draw ---------- */
+function proj(x, z) {
+  const dz = z - (P.z - cam.dz);
+  const k = focal / dz;
+  return { k, dz, sx: W / 2 + (x - P.x * 0.82) * k - yaw * focal, base: cam.hz * H + cam.h * k };
+}
+
+function frame(dt) {
+  const hz = cam.hz * H;
+  drawBackdrop(hz);
+  drawGround(hz);
+
+  const camZ = P.z - cam.dz;
+  const c0 = Math.floor((camZ - 12) / CHUNK), c1 = Math.floor((camZ + MAX_DRAW) / CHUNK);
+  const list = [];
+  for (let c = c0; c <= c1; c++) for (const it of genChunk(c)) {
+    const dz = it.z - camZ;
+    if (dz > 0.7 && dz < MAX_DRAW + 10) list.push(it);
+  }
+  list.sort((a, b) => b.z - a.z);
+
+  // palm shadows on the ground
+  const sh = IMG.shadow;
+  if (sh) {
+    ctx.save();
+    for (const it of list) {
+      if (it.type !== 'palm' || it.x > 8 || it.x < -8) continue;
+      const dz = it.z - camZ; if (dz < 1.5 || dz > 70) continue;
+      const k = focal / dz;
+      const w = 7.5 * k, hh = 5 * cam.h * focal / (dz * dz);
+      const sx = W / 2 + (it.x - it.side * 3.4 - P.x * 0.82) * k - yaw * focal;
+      const sy = hz + cam.h * k;
+      ctx.globalAlpha = 0.55 * Math.min(1, (70 - dz) / 30);
+      ctx.save(); ctx.translate(sx, sy); if (it.side < 0) ctx.scale(-1, 1);
+      ctx.drawImage(sh, -w / 2, -hh * 0.6, w, hh);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  // sprites + player, far to near
+  const playerZ = P.z;
+  let playerDrawn = false;
+  const drawPlayer = () => { playerDrawn = true; drawMama(); };
+  for (const it of list) {
+    if (!playerDrawn && it.z < playerZ) drawPlayer();
+    drawItem(it, camZ);
+  }
+  if (!playerDrawn) drawPlayer();
+
+  // light grade + vignette
+  ctx.save();
+  ctx.globalCompositeOperation = 'soft-light';
+  const warm = ctx.createLinearGradient(0, 0, W, H);
+  warm.addColorStop(0, 'rgba(255,214,150,0.30)'); warm.addColorStop(1, 'rgba(255,170,90,0.22)');
+  ctx.fillStyle = warm; ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+  const vg = ctx.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.45, W / 2, H * 0.55, Math.max(W, H) * 0.78);
+  vg.addColorStop(0, 'rgba(30,15,5,0)'); vg.addColorStop(1, 'rgba(30,15,5,0.32)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  drawSlapFx();
+}
+
+// fog-tinted silhouette of a sprite (cached per image)
+const fogCache = new Map();
+function fogCanvas(im) {
+  let c = fogCache.get(im);
+  if (c) return c;
+  c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+  const x = c.getContext('2d');
+  x.drawImage(im, 0, 0);
+  x.globalCompositeOperation = 'source-in';
+  x.fillStyle = `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`;
+  x.fillRect(0, 0, c.width, c.height);
+  fogCache.set(im, c);
+  return c;
+}
+
+function drawItem(it, camZ) {
+  const t = TYPES[it.type];
+  const im = IMG[t.key(it.v)]; if (!im) return;
+  const dz = it.z - camZ, k = focal / dz;
+  const h = it.h * k, w = h * im.width / im.height;
+  const sx = W / 2 + (it.x - P.x * 0.82) * k - yaw * focal;
+  if (sx + w / 2 < -20 || sx - w / 2 > W + 20) return;
+  const base = cam.hz * H + cam.h * k;
+  if (base - h > H) return;
+  let a = dz > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dz) / 35) : 1;
+  if (dz < 4.5) a *= Math.max(0, (dz - 1.2) / 3.3);
+  if (a <= 0) return;
+  ctx.globalAlpha = a;
+  ctx.drawImage(im, sx - w / 2, base - h, w, h);
+  // distance haze: veil the sprite with fog color through a clip of its own footprint
+  const fogA = Math.min(0.5, Math.max(0, (dz - 22) / 170)) * a;
+  if (fogA > 0.03) {
+    const f = fogCanvas(im, w, h);
+    ctx.globalAlpha = fogA;
+    ctx.drawImage(f, sx - w / 2, base - h, w, h);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawMama() {
+  const p = proj(P.x, P.z);
+  const hw = PLAYER_H * p.k, sc = hw / META.h;          // walk sprite height = player height; everything else scales with it
+  const sl = SLAP.cur;
+  let im, pivot, lean = 0, flip = false;
+  if (sl) {
+    const M = META_SLAP[sl.kind], idx = Math.min(Math.floor(sl.t), M.n - 1);
+    im = IMG['slap' + sl.kind + '_' + String(idx).padStart(2, '0')]; pivot = M.pivot; flip = sl.flip;
+  } else {
+    const moving = Math.hypot(P.vz, P.vx * 0.6) > 0.35, NF = META.n;
+    const idx = moving ? ((Math.floor(P.phase) % NF) + NF) % NF : META.idle;
+    im = IMG['walk_' + String(idx).padStart(2, '0')]; pivot = META.pivot;
+    lean = Math.max(-1, Math.min(1, P.vx / 2)) * 0.07;
+  }
+  if (!im) return;
+  const w = im.width * sc, h = im.height * sc, sx = p.sx, by = p.base;
+  // contact shadow (always sized from the walk sprite so it does not jump between clips)
+  ctx.save();
+  ctx.globalAlpha = 0.35; ctx.fillStyle = '#2a1608';
+  ctx.beginPath(); ctx.ellipse(sx, by - hw * 0.005, META.w * sc * 0.42, hw * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(sx, by);
+  if (lean) ctx.rotate(lean);
+  if (flip) ctx.scale(-1, 1);                           // enemy on the left: mirror the whole clip around her body centre
+  ctx.drawImage(im, -w * pivot, -h, w, h);
+  ctx.restore();
+}
+
+function drawSlapFx() {
+  const f = SLAP.fx; if (!f) return;
+  const p = proj(P.x, P.z), h = PLAYER_H * p.k;
+  const x = p.sx + f.side * h * (f.kind === 'B' ? 0.78 : 0.58), y = p.base - h * 0.66 - f.t * h * 0.14;
+  const a = Math.max(0, 1 - f.t / 0.55), s = 1 + 0.28 * Math.sin(Math.min(1, f.t / 0.14) * Math.PI / 2);
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(f.side * 0.12); ctx.scale(s, s);
+  ctx.font = Math.round(h * 0.2) + 'px "Lilita One", Impact, sans-serif'; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+  ctx.lineWidth = h * 0.04; ctx.strokeStyle = '#2a0d08'; ctx.strokeText('SLAP!', 0, 0);
+  ctx.fillStyle = '#ffc83a'; ctx.fillText('SLAP!', 0, 0); ctx.restore();
+}
+
+/* ---------- update ---------- */
+let lastDisplayed = -1;
+function update(dt) {
+  // input vector
+  let ix = joy.x, iy = joy.y;                       // iy>0 forward
+  if (keys.has('KeyA') || keys.has('ArrowLeft')) ix -= 1;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) ix += 1;
+  if (keys.has('KeyW') || keys.has('ArrowUp')) iy += 1;
+  if (keys.has('KeyS') || keys.has('ArrowDown')) iy -= 1;
+  ix = Math.max(-1, Math.min(1, ix)); iy = Math.max(-1, Math.min(1, iy));
+  if (ix !== 0) SLAP.lastSide = Math.sign(ix);
+  const sl = SLAP.cur;
+  if (sl) {                                           // she plants her feet while slapping
+    const M = META_SLAP[sl.kind];
+    sl.t += dt * M.fps;
+    if (!sl.hit && sl.t >= M.hit) { sl.hit = true; playSlap(sl.kind); SLAP.fx = { t: 0, side: sl.side, kind: sl.kind }; }
+    if (sl.t >= M.n) SLAP.cur = null;
+    ix = 0; iy = 0;
+  }
+  if (SLAP.fx) { SLAP.fx.t += dt; if (SLAP.fx.t > 0.55) SLAP.fx = null; }
+
+  const targetVz = Math.max(0, iy) * 2.4;
+  const targetVx = ix * 2.1;
+  const ease = 1 - Math.exp(-dt * (SLAP.cur ? 16 : 6));   // plant her feet quickly when a slap starts
+  P.vz += (targetVz - P.vz) * ease;
+  P.vx += (targetVx - P.vx) * ease;
+  P.z += P.vz * dt;
+  P.x += P.vx * dt;
+  if (P.x > STREET_HALF) { P.x = STREET_HALF; P.vx = 0; }
+  if (P.x < -STREET_HALF) { P.x = -STREET_HALF; P.vx = 0; }
+  const speed = Math.hypot(P.vz, P.vx * 0.5);
+  P.phase += speed * dt / 2.4 * 24;                   // 24 video frames per stride (2.4 m) = natural 24 fps at walking pace
+
+  // camera preset easing
+  const cp = CAM_PRESETS[camIdx], ce = 1 - Math.exp(-dt * 5);
+  cam.h += (cp.h - cam.h) * ce; cam.hz += (cp.hz - cam.hz) * ce; cam.dz += (cp.dz - cam.dz) * ce;
+
+  // yaw recenters gently when not dragging
+  if (!dragging && performance.now() - lastLook > 1200) yaw *= Math.exp(-dt * 1.4);
+
+  const d = Math.floor(P.z);
+  if (d !== lastDisplayed) {
+    lastDisplayed = d;
+    $('distv').textContent = String(Math.max(0, d)).padStart(5, '0') + ' m';
+  }
+}
+
+/* ---------- input ---------- */
+addEventListener('keydown', e => {
+  if (e.repeat) { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault(); return; }
+  keys.add(e.code);
+  if (e.code === 'KeyQ') camIdx = (camIdx + CAM_PRESETS.length - 1) % CAM_PRESETS.length;
+  if (e.code === 'KeyE') camIdx = (camIdx + 1) % CAM_PRESETS.length;
+  if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+  if (e.code === 'KeyJ') startSlap('A', sideNow());
+  if (e.code === 'KeyK') startSlap('B', sideNow());
+  if (e.code === 'Space' || e.code === 'KeyF') slapAuto();
+  if (e.code === 'KeyH') $('hint').style.opacity = $('hint').style.opacity === '0' ? '1' : '0';
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+});
+addEventListener('keyup', e => keys.delete(e.code));
+addEventListener('blur', () => keys.clear());
+
+function togglePause() { paused = !paused; document.body.classList.toggle('paused', paused); if (!paused) last = performance.now(); }
+$('pause').addEventListener('click', togglePause);
+
+// look-around by dragging the scene
+cv.addEventListener('pointerdown', e => {
+  dragging = { id: e.pointerId, x: e.clientX };
+  cv.setPointerCapture(e.pointerId);
+  $('look').style.opacity = '0';
+});
+cv.addEventListener('pointermove', e => {
+  if (!dragging || e.pointerId !== dragging.id) return;
+  const dx = e.clientX - dragging.x; dragging.x = e.clientX;
+  yaw = Math.max(-0.4, Math.min(0.4, yaw - dx * 0.0022));
+  lastLook = performance.now();
+});
+const endDrag = e => { if (dragging && e.pointerId === dragging.id) { dragging = null; lastLook = performance.now(); } };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+// slap button
+$('slapbtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); slapAuto(); });
+
+// virtual joystick
+(() => {
+  const el = $('stick'), knob = $('knob');
+  let id = null;
+  const set = (e) => {
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2;
+    let dx = (e.clientX - cx) / R, dy = (e.clientY - cy) / R;
+    const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; }
+    knob.style.transform = `translate(${dx * R * 0.5}px, ${dy * R * 0.5}px)`;
+    const dead = 0.12;
+    joy.x = Math.abs(dx) < dead ? 0 : dx; joy.y = Math.abs(dy) < dead ? 0 : -dy;
+  };
+  const reset = () => { id = null; joy.x = joy.y = 0; knob.style.transform = ''; };
+  el.addEventListener('pointerdown', e => { id = e.pointerId; el.setPointerCapture(id); set(e); e.preventDefault(); });
+  el.addEventListener('pointermove', e => { if (e.pointerId === id) set(e); });
+  el.addEventListener('pointerup', e => { if (e.pointerId === id) reset(); });
+  el.addEventListener('pointercancel', reset);
+})();
+
+setTimeout(() => { if ($('look')) $('look').style.opacity = '0'; }, 14000);
+if (!isTouch) $('look').innerHTML = '⌖ DRAG TO LOOK AROUND';
+
+/* ---------- loop ---------- */
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!paused) update(dt);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  const fx = SLAP.fx;
+  if (fx && fx.t < 0.2) {                              // small impact shake + zoom pop on the hit frame
+    const m = 7 * (1 - fx.t / 0.2);
+    ctx.translate(W / 2, H / 2); ctx.scale(1 + 0.012 * (1 - fx.t / 0.2), 1 + 0.012 * (1 - fx.t / 0.2));
+    ctx.translate(-W / 2 + (Math.random() - 0.5) * m, -H / 2 + (Math.random() - 0.5) * m * 0.6);
+  }
+  frame(dt);
+  requestAnimationFrame(loop);
+}
+
+resize();
+loadAll().then(() => {
+  buildTile();
+  $('loading').style.display = 'none';
+  last = performance.now();
+  requestAnimationFrame(loop);
+  loadKeys(isSlapKey).then(() => { SLAP.ready = true; $('slapbtn').disabled = false; });
+});
+
+// test hook for headless checks
+window.__game = { P, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto };
+})();
+</script>
+</body>
+</html>

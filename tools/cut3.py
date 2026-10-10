@@ -1,8 +1,5 @@
-import os
 import cv2, numpy as np
 from scipy import ndimage
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
-os.chdir(os.path.join(ROOT, 'work'))  # shots/ (s0-5.png in, base/cut out) lives here
 
 POLY = {
  0: [[(758,806),(803,806),(803,832),(800,840),(798,860),(812,868),(822,890),(820,912),(805,922),(765,920),(742,905),(742,885),(752,866),(758,850),(757,832)]],

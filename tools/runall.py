@@ -1,6 +1,6 @@
-import os, sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sys; sys.path.insert(0, "/home/claude/game/video")
 import numpy as np, cv2, json
-from key import process  # also chdirs into work/video
+from key import process
 from concurrent.futures import ProcessPoolExecutor
 def job(i):
     im,m,d = process(f'raw/f_{i:03d}.png')

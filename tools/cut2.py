@@ -1,8 +1,5 @@
-import os
 import cv2, numpy as np
 from scipy import ndimage
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
-os.chdir(os.path.join(ROOT, 'work'))  # shots/ (s0-5.png in, base/cut out) lives here
 BOX = {0:(575,268,940,932), 1:(490,303,820,962), 2:(605,316,920,914), 3:(655,306,945,874), 4:(482,231,812,1008), 5:(510,306,882,947)}
 
 def run(im, mask, iters):
