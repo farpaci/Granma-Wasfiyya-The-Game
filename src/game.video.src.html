@@ -201,15 +201,18 @@ function genChunk(c) {
   }
   // shopfront facades (generated after all props so prop placement is unchanged)
   items.facades = [];
+  const oRoll = r(), oSide = oRoll < 0.35 ? (r() < 0.5 ? -1 : 1) : 0, oLen = 14 + r() * 12, oz1 = z0 + r() * (CHUNK - oLen), oz2 = oz1 + oLen;
   for (const side of [-1, 1]) {
-    let z = z0, i = 0;
+    let z = z0, i = 0, open = side === oSide, prev = false;
     while (z < z0 + CHUNK - 3) {
-      if (r() < 0.3) z += 1.5 + r() * 1.5;
-      const len = 6 + r() * 6, z2 = Math.min(z + len, z0 + CHUNK);
-      if (z2 - z < 3) break;
+      if (open && z >= oz1 - 0.01) { items.facades.push({ side, open: 1, z1: oz1, z2: oz2, key: c + ':' + side + ':o' }); z = oz2; open = false; prev = false; continue; }
+      let gap = false;
+      if (r() < 0.3) { z += 1.5 + r() * 1.5; gap = true; if (open && z >= oz1 - 0.01) continue; }
+      const len = 6 + r() * 6, z2 = Math.min(z + len, z0 + CHUNK, open ? oz1 : 1e9);
+      if (z2 - z < 3) { if (open && z < oz1) { z = oz1; prev = false; continue; } break; }
       const floors = 1 + Math.floor(r() * 2), h = 4 + 3 * floors + 0.5 + r() * 0.5 + (r() < 0.4 ? 0.5 : 0);
-      items.facades.push({ side, z1: z, z2, h, floors, seed: Math.floor(r() * 4294967296), style: Math.floor(r() * 3), key: c + ':' + side + ':' + i++ });
-      z = z2;
+      items.facades.push({ side, z1: z, z2, h, floors, seed: Math.floor(r() * 4294967296), style: Math.floor(r() * 3), d: 6 + r() * 4, touchPrev: prev && !gap, key: c + ':' + side + ':' + i++ });
+      z = z2; prev = true;
     }
   }
   chunkCache.set(c, items);
@@ -322,43 +325,128 @@ function facadeTex(b) {
   }
   if (b.side < 0) rect('rgba(40,22,10,0.16)', 0, 0, w, H_);
   facadeCache.set(b.key, c);
-  if (facadeCache.size > 60) facadeCache.delete(facadeCache.keys().next().value);
+  if (facadeCache.size > 140) facadeCache.delete(facadeCache.keys().next().value);
   return c;
 }
 
 const wallOf = b => WALLS[Math.floor(mulberry32(b.seed)() * WALLS.length)];
+const EP = 20;
+function endTex(b) {
+  let c = facadeCache.get('e' + b.key); if (c) return c;
+  const d = b.d, h = b.h;
+  c = document.createElement('canvas'); c.width = Math.round(d * EP); c.height = Math.round(h * EP);
+  const x = c.getContext('2d'), rr = mulberry32(b.seed ^ 0x5bd1e995), wall = wallOf(b);
+  const rect = (col, a, b2, c2, d2) => { x.fillStyle = col; x.fillRect(a, b2, c2, d2); };
+  x.scale(EP, EP);
+  if (b.side < 0) { x.translate(d, 0); x.scale(-1, 1); }      // design coords: street edge at x=0
+  rect(wall, 0, 0, d, h);
+  for (let i = 0; i < 10; i++) { x.fillStyle = rr() < 0.6 ? `rgba(90,60,30,${0.03 + rr() * 0.05})` : `rgba(255,250,235,${0.05 + rr() * 0.06})`; x.beginPath(); x.ellipse(rr() * d, rr() * h, 0.5 + rr() * 2, 0.4 + rr() * 1.5, rr() * 3, 0, 6.3); x.fill(); }
+  const gT = h - 4, yTop = gT - 3 * b.floors;
+  const n = d > 8 ? 2 : 1;
+  for (let f = 0; f < b.floors; f++) {
+    const yb = gT - 3 * f;
+    for (let i = 0; i < n; i++) {
+      const ww = 0.95, wh = 1.75, wx = d * (i + 1) / (n + 1) - ww / 2 + 0.3, wy = yb - 0.8 - wh;
+      if (rr() < 0.15) continue;
+      rect('rgba(70,45,25,0.35)', wx - 0.1, wy - 0.05, ww + 0.2, wh + 0.2);
+      const g = x.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, '#1d2a33'); g.addColorStop(1, '#3d5560'); rect(g, wx, wy, ww, wh);
+      rect('rgba(240,230,205,0.75)', wx + ww / 2 - 0.025, wy, 0.05, wh); rect('rgba(240,230,205,0.85)', wx - 0.1, wy + wh, ww + 0.2, 0.1);
+      x.strokeStyle = 'rgba(240,230,205,0.8)'; x.lineWidth = 0.05; x.strokeRect(wx, wy, ww, wh);
+    }
+  }
+  rect('rgba(70,45,25,0.22)', 0, yTop - 0.35, d, 0.35); rect('#efe3c6', 0, yTop - 0.55, d, 0.2); rect('#d9c9a5', 0, yTop - 0.4, d, 0.08); rect('rgba(40,25,10,0.4)', 0, yTop - 0.35, d, 0.05);
+  rect('#6d6659', 0.45, 0.2, 0.14, h - 0.5); for (let y = 1; y < h - 0.5; y += 1.6) rect('#4d473d', 0.4, y, 0.24, 0.06);
+  let g = x.createLinearGradient(0, h - 2.5, 0, h); g.addColorStop(0, 'rgba(40,25,10,0)'); g.addColorStop(1, 'rgba(40,25,10,0.35)'); rect(g, 0, h - 2.5, d, 2.5);
+  rect('#9a8c78', 0, h - 0.3, d, 0.3);
+  rect('rgba(15,8,2,0.3)', 0, 0, d, h);
+  facadeCache.set('e' + b.key, c);
+  if (facadeCache.size > 140) facadeCache.delete(facadeCache.keys().next().value);
+  return c;
+}
+/* balustrade: 2 m tile, transparent between balusters; BP px/m */
+const BP = 48, BT = 2;
+let balTex = null, balFog = null;
+function balBuild() {
+  balTex = document.createElement('canvas'); balTex.width = BT * BP; balTex.height = 56;
+  const x = balTex.getContext('2d'), H_ = 56, rr = mulberry32(77);
+  const rect = (col, a, b2, c2, d) => { x.fillStyle = col; x.fillRect(a, b2, c2, d); };
+  rect('#e9e0cb', 0, H_ - 8, balTex.width, 8); rect('#d2c8b0', 0, H_ - 3, balTex.width, 3);        // plinth
+  for (let px = 8; px < balTex.width - 6; px += 12) {
+    const g = x.createLinearGradient(px, 0, px + 7, 0); g.addColorStop(0, '#f3ecd9'); g.addColorStop(1, '#bfb49a');
+    x.fillStyle = g; x.beginPath(); x.moveTo(px + 1, H_ - 8); x.lineTo(px + 2, H_ - 16); x.lineTo(px, H_ - 22); x.lineTo(px + 1, H_ - 36); x.lineTo(px + 6, H_ - 36); x.lineTo(px + 7, H_ - 22); x.lineTo(px + 5, H_ - 16); x.lineTo(px + 6, H_ - 8); x.fill();
+  }
+  rect('#f1e9d4', 0, 6, balTex.width, 8); rect('#c9bfa6', 0, 14, balTex.width, 4); rect('rgba(255,255,255,0.5)', 0, 6, balTex.width, 1.5);
+  rect('#e6dcc3', 0, 0, 10, H_); rect('#f4eddb', 0, 0, 10, 6); rect('#e6dcc3', balTex.width - 10, 0, 10, H_); rect('#f4eddb', balTex.width - 10, 0, 10, 6);
+  for (let i = 0; i < 60; i++) rect(`rgba(${rr() < 0.5 ? '90,80,55' : '60,90,60'},${0.08 + rr() * 0.12})`, rr() * balTex.width, rr() * H_, 1 + rr() * 2, 1 + rr() * 3);
+  balFog = document.createElement('canvas'); balFog.width = balTex.width; balFog.height = H_;
+  const f = balFog.getContext('2d'); f.drawImage(balTex, 0, 0); f.globalCompositeOperation = 'source-in'; f.fillStyle = `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`; f.fillRect(0, 0, balFog.width, H_);
+}
+const BAL_H = 1.1, drawList = [];
 function drawFacades(hz, camZ, c0, c1) {
   const fogCol = `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`, camX = P.x * 0.82, mid = W / 2 - yaw * focal;
   const lo = -2 - mid, hi = W + 2 - mid;
   let painted = 0;
   ctx.imageSmoothingQuality = 'low';
-  for (let c = c0; c <= c1; c++) for (const b of genChunk(c).facades) {
-    const wallX = b.side * FACADE_X - camX, A = wallX * focal, left = b.side < 0;
+  drawList.length = 0;
+  for (let c = c0; c <= c1; c++) for (const b of genChunk(c).facades) drawList.push(b);
+  drawList.sort((p, q) => q.z1 - p.z1);                 // far -> near
+  for (const b of drawList) {
+    const wallX = b.side * FACADE_X - camX, A = wallX * focal, left = b.side < 0, open = b.open;
     let dmin = 0, dmax = 1e9;
     if (A > 0) { if (hi <= 0) continue; dmin = A / hi; if (lo > 0) dmax = A / lo; }
     else { if (lo >= 0) continue; dmin = A / lo; if (hi < 0) dmax = A / hi; }
     const za = Math.max(b.z1, camZ + 1, camZ + dmin), zb = Math.min(b.z2, camZ + MAX_DRAW, camZ + dmax);
+    // end wall (near end of the building, faces the camera)
+    if (!open && !b.touchPrev) {
+      const dzE = b.z1 - camZ;
+      if (dzE >= 1 && dzE < MAX_DRAW) {
+        const kE = focal / dzE, e1 = mid + wallX * kE, e2 = mid + (b.side * (FACADE_X + b.d) - camX) * kE, el = Math.min(e1, e2), ew = Math.abs(e1 - e2);
+        const bE = hz + cam.h * kE, tE = bE - b.h * kE;
+        if (el < W && el + ew > 0 && tE < H && bE > 0) {
+          let et = facadeCache.get('e' + b.key);
+          if (!et && painted < 1) { et = endTex(b); painted++; }
+          const aE = dzE > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dzE) / 35) : 1;
+          ctx.globalAlpha = aE;
+          if (et) ctx.drawImage(et, el, tE, ew, bE - tE);
+          else { ctx.fillStyle = wallOf(b); ctx.fillRect(el, tE, ew, bE - tE); ctx.fillStyle = 'rgba(15,8,2,0.3)'; ctx.fillRect(el, tE, ew, bE - tE); }
+          const fogE = Math.min(0.5, Math.max(0, (dzE - 22) / 170)) * aE;
+          if (fogE > 0.02) { ctx.fillStyle = fogCol; ctx.globalAlpha = fogE; ctx.fillRect(el, tE, ew, bE - tE); }
+        }
+      }
+    }
     if (zb <= za) continue;
-    let tex = facadeCache.get(b.key);
-    if (!tex && painted < 1) { tex = facadeTex(b); painted++; }
-    const th = tex ? tex.height : 0;
-    if (!tex) { ctx.fillStyle = wallOf(b); }
+    let tex = null, th = 0;
+    if (open) { if (!balTex) balBuild(); tex = balTex; th = tex.height; }
+    else {
+      tex = facadeCache.get(b.key);
+      if (!tex && painted < 1) { tex = facadeTex(b); painted++; }
+      th = tex ? tex.height : 0;
+      if (!tex) ctx.fillStyle = wallOf(b);
+    }
+    const bh = open ? BAL_H : b.h;
     for (let z = za; z < zb;) {
       const dz = z - camZ;
-      const dzs = Math.min(zb - z, Math.min(3, Math.max(0.08, 6 * dz * dz / (FACADE_X * focal))));
+      let dzs = Math.min(zb - z, Math.min(3, Math.max(0.08, 6 * dz * dz / (FACADE_X * focal))));
+      let u0 = 0;
+      if (open) { const zr = (z - b.z1) % BT; dzs = Math.min(dzs, Math.max(0.02, BT - zr)); u0 = left ? zr : Math.max(0, BT - zr - dzs); }
       const k1 = focal / dz, k2 = focal / (dz + dzs), km = focal / (dz + dzs / 2);
       const s1 = mid + wallX * k1, s2 = mid + wallX * k2;
       const l = Math.min(s1, s2), sw = Math.abs(s1 - s2) + 0.6;
-      const base = hz + cam.h * km, top = base - b.h * km;
+      const base = hz + cam.h * km, top = base - bh * km;
       if (top < H && base > 0) {
         const a = dz > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dz) / 35) : 1;
         ctx.globalAlpha = a;
-        if (tex) {
-          const za2 = z - b.z1, ua = (left ? za2 : (b.z2 - b.z1) - za2 - dzs) * PPM;
-          ctx.drawImage(tex, ua, 0, dzs * PPM, th, l, top, sw, base - top);
-        } else ctx.fillRect(l, top, sw, base - top);
         const fogA = Math.min(0.5, Math.max(0, (dz - 22) / 170)) * a;
-        if (fogA > 0.02) { const ps = ctx.fillStyle; ctx.fillStyle = fogCol; ctx.globalAlpha = fogA; ctx.fillRect(l, top, sw, base - top); ctx.fillStyle = ps; }
+        if (open) {
+          ctx.drawImage(tex, u0 * BP, 0, dzs * BP, th, l, top, sw, base - top);
+          if (fogA > 0.02) { ctx.globalAlpha = fogA; ctx.drawImage(balFog, u0 * BP, 0, dzs * BP, th, l, top, sw, base - top); }
+        } else {
+          if (tex) {
+            const za2 = z - b.z1, ua = (left ? za2 : (b.z2 - b.z1) - za2 - dzs) * PPM;
+            ctx.drawImage(tex, ua, 0, dzs * PPM, th, l, top, sw, base - top);
+          } else ctx.fillRect(l, top, sw, base - top);
+          if (fogA > 0.02) { const ps = ctx.fillStyle; ctx.fillStyle = fogCol; ctx.globalAlpha = fogA; ctx.fillRect(l, top, sw, base - top); ctx.fillStyle = ps; }
+        }
       }
       z += dzs;
     }
