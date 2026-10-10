@@ -28,9 +28,10 @@
   /* HUD right */
   #hud-r{position:fixed;right:min(2vw,26px);top:min(2vh,22px);display:flex;gap:10px;align-items:stretch}
   .panel{background:rgba(20,28,36,.62);border:1px solid rgba(255,255,255,.16);border-radius:12px;backdrop-filter:blur(6px);color:#fff}
-  #dist{padding:.35em .9em .3em;text-align:left;min-width:150px}
-  #dist small{display:block;font-size:11px;letter-spacing:.14em;opacity:.85;font-weight:800}
-  #dist span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(24px,3vw,36px);letter-spacing:.04em;line-height:1.05}
+  #dist,#slaps{padding:.35em .9em .3em;text-align:left;min-width:150px}
+  #slaps{min-width:96px}
+  #dist small,#slaps small{display:block;font-size:11px;letter-spacing:.14em;opacity:.85;font-weight:800}
+  #dist span,#slaps span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(24px,3vw,36px);letter-spacing:.04em;line-height:1.05}
   #pause{width:54px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(20,28,36,.62);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(6px)}
   #pause:active{transform:scale(.95)}
   #pause i{display:block;width:6px;height:22px;background:#fff;border-radius:2px;box-shadow:12px 0 0 #fff;margin-right:12px}
@@ -91,19 +92,20 @@
 
 <div id="hud-r">
   <div id="dist" class="panel"><small>DISTANCE</small><span id="distv">00000 m</span></div>
+  <div id="slaps" class="panel"><small>SLAPS</small><span id="slapsv">0</span></div>
   <button id="pause" aria-label="Pause"><i></i></button>
 </div>
 
 <div id="hint" class="panel">
-  <h4>Prototype (no enemies yet)</h4>
+  <h4>Slap the troublemakers!</h4>
   <div>
     <kbd>W / ↑</kbd><em>Move forward</em>
     <kbd>A / ←</kbd><em>Move left</em>
     <kbd>D / →</kbd><em>Move right</em>
     <kbd>Mouse</kbd><em>Look around (drag)</em>
     <kbd>Q / E</kbd><em>Change camera angle</em>
-    <kbd>Space</kbd><em>Slap (near / far)</em>
-    <kbd>J / K</kbd><em>Near / far slap</em>
+    <kbd>Space</kbd><em>Slap the nearest man</em>
+    <kbd>J / K</kbd><em>Near / far air slap</em>
     <kbd>P</kbd><em>Pause</em>
   </div>
   <div class="foot">Press H to hide</div>
@@ -140,10 +142,11 @@ function loadKeys(keep) {
     im.src = src;
   })));
 }
-const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k));   // core art first; slap frames decode in the background
+const isEnemyKey = k => k.startsWith('frozen_') || /^walk_[a-z]/.test(k);
+const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k) && !isEnemyKey(k));   // core art first; slap frames decode in the background
 
 /* ---------- slap system ---------- */
-const SLAP = { cur: null, fx: null, next: 'A', lastSide: 1, ready: false };
+const SLAP = { cur: null, fx: null, target: null, next: 'A', lastSide: 1, ready: false };
 const NEAR_RANGE = 1.8;                       // metres: closer than this -> near slap (A), else far slap (B)
 const SFX = {};
 for (const k of ['A', 'B']) { const u = ASSETS['sfx_slap' + k]; if (u) { SFX[k] = new Audio(u); SFX[k].preload = 'auto'; } }
@@ -163,7 +166,91 @@ function sideNow() {
   if (joy.x < -0.2) return -1; if (joy.x > 0.2) return 1;
   return SLAP.lastSide;
 }
-function slapAuto() { const k = SLAP.next; if (startSlap(k, sideNow())) SLAP.next = k === 'A' ? 'B' : 'A'; }
+function slapAuto() {
+  if (SLAP.cur || paused || !SLAP.ready) return;
+  let best = null, bd = 9;
+  for (const e of enemies) {
+    if (e.state !== 'walking') continue;
+    const dz = e.z - P.z;
+    if (dz < -0.2 || dz > 3.0 || Math.abs(e.x - P.x) >= 2.2 || dz >= bd) continue;
+    best = e; bd = dz;
+  }
+  if (best) { slapEnemy(best); return; }
+  const k = SLAP.next; if (startSlap(k, sideNow())) SLAP.next = k === 'A' ? 'B' : 'A';
+}
+function slapEnemy(e) { if (!e || e.state !== 'walking' || !startSlap(e.clip, e.side)) return false; e.state = 'struck'; SLAP.target = e; return true; }
+
+/* ---------- enemies ---------- */
+const enemies = [], EN = { ready: false, t: 2, last: '', lastSide: 1, count: 0 }, EN_IDS = ['thobe', 'tank', 'tee', 'hoodie', 'shirt', 'shemagh'];
+const EN_H = { thobe: 1.90, tank: 1.82, tee: 1.85, hoodie: 1.75, shirt: 1.80, shemagh: 1.75 }, EN_SPEED = 1.25, EN_KEYS = {};
+function enemyInit() {
+  for (const id of EN_IDS) EN_KEYS[id] = Array.from({ length: META_ENEMY[id].walk.n }, (_, i) => 'walk_' + id + '_' + String(i).padStart(2, '0'));
+  EN.ready = true;
+}
+function spawnEnemy() {
+  const z = P.z + 55 + Math.random() * 15;
+  const free = s => { for (const e of enemies) if (e.side === s && Math.abs(e.z - z) < 5) return false; return true; };
+  let side = Math.random() < 0.8 ? -EN.lastSide : EN.lastSide;
+  if (!free(side)) side = -side;
+  if (!free(side)) return false;
+  let id; do id = EN_IDS[Math.floor(Math.random() * EN_IDS.length)]; while (id === EN.last);
+  const M = META_ENEMY[id], H = EN_H[id], w = M.walk, hand = META_ENEMY._slapHand;
+  const faceY = H * (1 - w.headTop - w.face / 2) * w.h / M.heightPx;          // face centre height in metres
+  const clip = Math.abs(faceY - hand.A.y_m) < Math.abs(faceY - hand.B.y_m) ? 'A' : 'B';
+  const L = hand[clip].x_m + Math.random() * 0.12;
+  enemies.push({ id, H, side, L, clip, faceY, x: P.x + side * L, z, dist: Math.random() * 3, state: 'walking', settle: 0, keys: EN_KEYS[id] });
+  EN.last = id; EN.lastSide = side;
+  return true;
+}
+function updateEnemies(dt) {
+  if (EN.ready) {
+    EN.t -= dt;
+    if (EN.t <= 0) EN.t = enemies.length < 6 && !spawnEnemy() ? 0.3 : enemies.length >= 6 ? 0.5 : 2 + Math.random() * 2.5;
+  }
+  const camZ = P.z - cam.dz, hands = META_ENEMY._slapHand;
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    if (e.state === 'walking') {
+      e.z -= EN_SPEED * dt; e.dist += EN_SPEED * dt;
+      if (e.z - P.z < 20) {
+        const tx = P.x + e.side * e.L, d = tx - e.x, m = 0.8 * dt;
+        e.x += d > m ? m : d < -m ? -m : d;
+      }
+    } else if (e.state === 'struck' || e.settle) {
+      const hd = hands[e.clip], tz = P.z + 0.15, ke = focal / (cam.dz + 0.15);
+      const tx = 0.82 * P.x + (P.x + e.side * hd.x_m - 0.82 * P.x) * (focal / cam.dz) / ke;
+      const f = e.settle ? 1 : 1 - Math.exp(-dt * 14);
+      e.x += (tx - e.x) * f; e.z += (tz - e.z) * f; e.settle = 0;
+    }
+    if (e.z < camZ + 0.8 || e.z > P.z + MAX_DRAW + 10) {
+      if (SLAP.target === e) SLAP.target = null;
+      enemies.splice(i, 1);
+    }
+  }
+  enemies.sort(byZ);
+}
+const byZ = (a, b) => b.z - a.z;
+function drawEnemy(e, camZ) {
+  const M = META_ENEMY[e.id], fr = e.state === 'frozen', sp = fr ? M.frozen : M.walk, n = M.walk.n;
+  const im = fr ? IMG['frozen_' + e.id] : IMG[e.keys[Math.floor(e.dist / (EN_SPEED * M.walk.loop) * n) % n]];
+  if (!im) return;
+  const dz = e.z - camZ; if (dz < 0.3) return;
+  const k = focal / dz, sc = e.H / M.heightPx * k, w = im.width * sc, h = im.height * sc;
+  const sx = W / 2 + (e.x - P.x * 0.82) * k - yaw * focal;
+  if (sx + w < -20 || sx - w > W + 20) return;
+  const base = cam.hz * H + cam.h * k;
+  if (base - h > H) return;
+  let a = dz > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dz) / 35) : 1;
+  if (e.z < P.z - 0.6) a *= Math.max(0, 1 - (P.z - 0.6 - e.z) / 1.5);
+  if (a <= 0) return;
+  ctx.globalAlpha = a * 0.35; ctx.fillStyle = '#2a1608';
+  ctx.beginPath(); ctx.ellipse(sx, base - e.H * k * 0.005, M.walk.w * sc * 0.42, e.H * k * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = a;
+  ctx.drawImage(im, sx - w * sp.pivot, base - h, w, h);
+  const fogA = Math.min(0.5, Math.max(0, (dz - 22) / 170)) * a;
+  if (fogA > 0.03) { ctx.globalAlpha = fogA; ctx.drawImage(fogCanvas(im), sx - w * sp.pivot, base - h, w, h); }
+  ctx.globalAlpha = 1;
+}
 
 /* ---------- world definition (sizes in metres) ---------- */
 const TYPES = {
@@ -644,12 +731,16 @@ function frame(dt) {
   // sprites + player, far to near
   const playerZ = P.z;
   let playerDrawn = false;
-  const drawPlayer = () => { playerDrawn = true; drawMama(); };
+  let ei = 0;
+  const drawEn = zl => { while (ei < enemies.length && enemies[ei].z >= zl) drawEnemy(enemies[ei++], camZ); };
+  const drawPlayer = () => { playerDrawn = true; drawEn(playerZ); drawMama(); };
   for (const it of list) {
     if (!playerDrawn && it.z < playerZ) drawPlayer();
+    drawEn(it.z);
     drawItem(it, camZ);
   }
   if (!playerDrawn) drawPlayer();
+  drawEn(-1e9);
 
   // light grade + vignette
   ctx.save();
@@ -758,10 +849,16 @@ function update(dt) {
   if (sl) {                                           // she plants her feet while slapping
     const M = META_SLAP[sl.kind];
     sl.t += dt * M.fps;
-    if (!sl.hit && sl.t >= M.hit) { sl.hit = true; playSlap(sl.kind); SLAP.fx = { t: 0, side: sl.side, kind: sl.kind }; }
+    if (!sl.hit && sl.t >= M.hit) {
+      sl.hit = true; playSlap(sl.kind); SLAP.fx = { t: 0, side: sl.side, kind: sl.kind };
+      const t = SLAP.target;
+      if (t && t.state === 'struck') { t.state = 'frozen'; t.settle = 1; EN.count++; $('slapsv').textContent = EN.count; }
+      SLAP.target = null;
+    }
     if (sl.t >= M.n) SLAP.cur = null;
     ix = 0; iy = 0;
   }
+  if (!SLAP.cur && SLAP.target) { if (SLAP.target.state === 'struck') SLAP.target.state = 'walking'; SLAP.target = null; }
   if (SLAP.fx) { SLAP.fx.t += dt; if (SLAP.fx.t > 0.55) SLAP.fx = null; }
 
   const targetVz = Math.max(0, iy) * 2.4;
@@ -775,6 +872,8 @@ function update(dt) {
   if (P.x < -STREET_HALF) { P.x = -STREET_HALF; P.vx = 0; }
   const speed = Math.hypot(P.vz, P.vx * 0.5);
   P.phase += speed * dt / 2.4 * 24;                   // 24 video frames per stride (2.4 m) = natural 24 fps at walking pace
+
+  updateEnemies(dt);
 
   // camera preset easing
   const cp = CAM_PRESETS[camIdx], ce = 1 - Math.exp(-dt * 5);
@@ -873,11 +972,11 @@ loadAll().then(() => {
   $('loading').style.display = 'none';
   last = performance.now();
   requestAnimationFrame(loop);
-  loadKeys(isSlapKey).then(() => { SLAP.ready = true; $('slapbtn').disabled = false; });
+  loadKeys(isSlapKey).then(() => { SLAP.ready = true; $('slapbtn').disabled = false; return loadKeys(isEnemyKey); }).then(enemyInit);
 });
 
 // test hook for headless checks
-window.__game = { P, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto };
+window.__game = { P, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto, slapEnemy, enemies, EN };
 })();
 </script>
 </body>

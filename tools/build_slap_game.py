@@ -12,9 +12,12 @@ for f in sorted(glob.glob(os.path.join(root, 'assets_slap', 'slap*.webp'))):
     assets[os.path.splitext(os.path.basename(f))[0]] = b64(f, 'image/webp')
 for f in sorted(glob.glob(os.path.join(root, 'assets_slap', 'sfx_*.mp3'))):
     assets[os.path.splitext(os.path.basename(f))[0]] = b64(f, 'audio/mpeg')
+for f in sorted(glob.glob(os.path.join(root, 'assets_enemy', '*.webp'))):
+    assets[os.path.splitext(os.path.basename(f))[0]] = b64(f, 'image/webp')
+menemy = json.load(open(os.path.join(root, 'assets_enemy', 'meta_enemy.json')))
 meta = json.load(open(os.path.join(root, 'assets_video', 'meta.json')))
 mslap = json.load(open(os.path.join(root, 'assets_slap', 'meta_slap.json')))
 src = open(os.path.join(root, 'src', 'game.slap.src.html'), encoding='utf-8').read()
-out = src.replace('/*ASSETS*/', 'const ASSETS = ' + json.dumps(assets) + ';\nconst META = ' + json.dumps(meta) + ';\nconst META_SLAP = ' + json.dumps(mslap) + ';')
+out = src.replace('/*ASSETS*/', 'const ASSETS = ' + json.dumps(assets) + ';\nconst META = ' + json.dumps(meta) + ';\nconst META_SLAP = ' + json.dumps(mslap) + ';\nconst META_ENEMY = ' + json.dumps(menemy) + ';')
 open(os.path.join(root, 'index.html'), 'w', encoding='utf-8').write(out)
 print('index.html', round(len(out)/1e6, 2), 'MB,', len(assets), 'assets')
