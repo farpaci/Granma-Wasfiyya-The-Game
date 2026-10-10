@@ -26,3 +26,7 @@ Note: AI-generated art; check the PixVerse terms before public/commercial use.
 
 Claude Code: `.claude/agents/` defines cheaper subagents (Haiku `mechanic`, Sonnet `implementer` / `verifier`); the main session plans and delegates — see `CLAUDE.md`.
 Deploy: pushing to `Shoulder` publishes to GitHub Pages via `.github/workflows/pages.yml` (also runnable by hand / the `deploy` skill).
+
+## License
+© 2026 farpaci. Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — see `LICENSE`.
+You may share and adapt it **non-commercially**, only with credit to *Granma Wasfiyya by farpaci* and a link to this repository, and only under the same license. Presenting it (or a modified version) as your own, or selling/marketing it, is not allowed.
