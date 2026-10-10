@@ -8,8 +8,8 @@ Smoke test: `node tools/smoke.cjs [page.html]` — headless Chromium, walks forw
 Never Read `index.html` / `index_screenshot_version.html` directly (multi-MB inlined assets).
 
 # Model division of labor
-The main session (Opus) is the lead: it talks to the user, reads just enough code to plan, writes the plan, and commits/pushes. It delegates execution to subagents in `.claude/agents/`:
-- `mechanic` (Haiku): mechanical chores — rebuilds, smoke runs, grep/fact-finding, find/replace, renames.
+The main session (Opus) is the lead: it talks to the user, reads just enough code to plan, writes the plan, and reviews results. Commit/push is delegated too. It delegates execution to subagents in `.claude/agents/`:
+- `mechanic` (Haiku): mechanical chores — rebuilds, smoke runs, grep/fact-finding, find/replace, renames, and git commit/push with the message the lead gives.
 - `implementer` (Sonnet): writes the code for a decided plan, rebuilds, runs smoke.
 - `verifier` (Sonnet): reviews the diff + screenshots against the goal; PASS/FAIL.
-Flow: plan (lead) → implementer → verifier → lead reviews the report, commits. Give subagents self-contained prompts (files, functions, behavior, acceptance checks); they do not see this conversation. Do it inline only when the task is a one-line edit or delegating would cost more than doing it.
+Flow: plan (lead) → implementer → verifier → lead reviews the report → mechanic commits and pushes. Give subagents self-contained prompts (files, functions, behavior, acceptance checks); they do not see this conversation. Do it inline only when the task is a one-line edit or delegating would cost more than doing it.
