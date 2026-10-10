@@ -1,4 +1,4 @@
-# Mama Wasfiyya – Over the Shoulder (prototype)
+# Granma Wasfiyya – Over the Shoulder (prototype)
 
 2.5D pseudo-3D walking prototype (canvas, no engine). Open `index.html` in a browser.
 
