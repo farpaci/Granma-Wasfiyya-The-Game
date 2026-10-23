@@ -43,7 +43,7 @@ def sheet_prompt(ref_sentence, desc):
     return (f"{ref_sentence} Keep exactly this man: {desc}.\n\n"
         "Create ONE wide 16:9 image that shows this same man FIVE times, side by side in a single row, left to right, like a character pose sheet. "
         "All five figures are the same size and scale, full body from head to shoes, feet on the same baseline, evenly spaced with a wide empty gap of background between neighbours, "
-        "no figure touching or overlapping another. The same clothes and accessories in all five. Front view, camera at chest height for all of them. "
+        "no figure touching or overlapping another; leave extra space on both sides of figure 4 so that its raised leg and arms do not reach figures 3 or 5. The same clothes and accessories in all five. Front view, camera at chest height for all of them. "
         "In every pose someone stands to HIS RIGHT side (the left side of the image), but that person is NOT shown.\n\n"
         "1. Neutral: standing upright and relaxed facing the camera, arms at his sides, neutral expression.\n"
         "2. Slapped: just slapped hard on his RIGHT cheek; feet planted, head turned slightly to his left, eyes squeezed shut, mouth open in a pained \"ouch\", his RIGHT hand pressed flat on his right cheek, left arm half raised in shock.\n"
@@ -51,7 +51,7 @@ def sheet_prompt(ref_sentence, desc):
         "4. Kicked: falling sideways to HIS LEFT after a kick on his right hip, body tilted about 60 degrees, right leg lifted off the ground, arms flailing, shocked open mouth, only his left foot still touching the ground.\n"
         "5. Knocked down: lying flat on his back on the ground, dazed, eyes closed, arms spread, feet pointing towards the camera and head away from it, seen from slightly above.\n\n" + SHEET_BG)
 REF_EXISTING = ("Use the attached reference image: it shows the same man twice, a small walking frame on the left (his outfit) and a large sharp photo on the right (his face, hair, beard and build).")
-DONE = {'tank', 'thobe', 'tee'}
+DONE = {'tank', 'thobe', 'tee', 'shirt'}
 for mid, tr, desc in MEN:
     if mid in DONE: continue
     cards.append((f'{tr} ({mid})', '5 poz tek görselde', 'Gemini · görsel 16:9', f'man_{mid}.png', 'En-boy oranını 16:9 seç.', f'man_{mid}_sheet.png', sheet_prompt(REF_EXISTING, desc)))

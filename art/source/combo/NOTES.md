@@ -12,3 +12,6 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_thobe_fall.jpg` | Falls towards screen-right, correct. Tilt is ~30° (game can add rotation). |
 | `man_thobe_down.jpg` | Landscape, feet towards camera, correct. |
 | `man_tee_sheet.jpg` | 2000x1116. 1, 2, 4 correct. Dodge (3) barely leans (~10°): add in-game rotation away from Granma. Down (5) lies head towards the camera (accepted). Figure 5's shoe is close to figure 4's standing foot but not touching. |
+| `man_shirt_sheet.jpg` | 2000x1116. 1, 2, 4, 5 correct. Dodge (3) leans TOWARDS granma (~20°): mirror it and add rotation. |
+
+**Touching figures:** in `man_tank_sheet` (figures 3+4), `man_tee_sheet` (4+5) and `man_shirt_sheet` (3+4) the kicked figure's raised leg touches its neighbour, so they form one connected blob. Split at the narrowest joining column when cutting (contact is only a shoe/hem).
