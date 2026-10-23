@@ -79,6 +79,18 @@ for mid, tr, desc in NEW_FIRST + NEW:
       "Natural relaxed walk, same facial expression in all frames. Background: perfectly flat solid chroma-key green (#00B140) across the whole image, no gradient, no floor, no cast shadows, no grid lines, no props. He wears nothing green. Photorealistic, identical soft frontal studio lighting, sharp focus, no motion blur. No text, no numbers, no labels, no logo, no watermark, no border."))
     cards.append((sec, '5 poz tek görselde', 'Gemini · görsel 16:9', None, ('Daha önce ürettiğin man_thobe_ref.jpg görselini ekle, en-boy oranını 16:9 seç.' if has_base else f'man_{mid}_base.png görselini ekle, en-boy oranını 16:9 seç.'), f'man_{mid}_sheet.png',
       sheet_prompt("Use the attached reference photo.", desc)))
+GROUPS = [
+ ('adana_a', 'Adanalı grup A', 'four middle-aged men from Adana in southern Turkey, with thick moustaches: one in a flat cap and a short-sleeved checked shirt, one in a white vest, one in a polo shirt, one older with grey hair in a cardigan'),
+ ('adana_b', 'Adanalı grup B', 'three men from Adana in southern Turkey in their thirties to fifties: one with a thick moustache in an open-collar striped shirt, one in a black T-shirt with a gold chain, one heavier man in a light linen shirt and prayer beads'),
+]
+for gid, gtr, gdesc in GROUPS:
+    cards.append((f'Yeni: {gtr} ({gid})', 'Masa grubu: 3 durum tek görselde', 'ChatGPT · görsel 16:9', None, 'Referans yok. 16:9 (yatay) seç. Şeffaf fon da olur.', f'group_{gid}_sheet.png',
+      f"Photorealistic image of the same group of {gdesc}. They sit on low wooden stools (tabure) around a small low square wooden table with tulip-shaped Turkish tea glasses on saucers, a backgammon board and a small plate of sunflower seeds. Friendly, relaxed street-cafe scene, not a caricature.\n\n"
+      "Create ONE wide 16:9 image that shows this SAME group THREE times, side by side in a single row, left to right, as three moments of one event. In all three the group is seen from the street at standing chest height, in a three-quarter front view, the whole group with table and stools fully in frame with margin, all three at the same scale and on the same baseline, with a wide empty gap between the three groups so they never touch. Someone stands on the LEFT side of each group (the street side), but that person is NOT shown.\n\n"
+      "1. Calm: the men chat and sip tea, one moving a backgammon piece, relaxed.\n"
+      "2. Kicked: a kick from the left has just sent the table flying up and tipping towards the right, tea glasses, saucers, backgammon pieces and sunflower seeds in mid-air; the men jerk back in shock with arms raised, one tipping backwards off his stool.\n"
+      "3. Aftermath: the table lies on its side on the ground with spilled tea glasses and scattered pieces; the men have jumped up from their stools, shocked and shouting, one sits on the ground, stools knocked over.\n\n"
+      "Background: perfectly flat solid chroma-key green (#00B140) across the whole image (or fully transparent), no gradient, no floor, no cast shadows, no props other than the table, stools and items listed. Nobody wears green. Sharp focus, no motion blur on the people. No text, no numbers, no labels, no logo, no watermark, no border."))
 imgs = {n: thumb(n) for n in sorted({c[3] for c in cards if c[3]})}
 data = [dict(sec=c[0], title=c[1], tool=c[2], img=c[3], note=c[4], file=c[5], prompt=c[6]) for c in cards]
 tpl = open(os.path.join(os.path.dirname(__file__), 'prompt_page.tpl.html')).read()
