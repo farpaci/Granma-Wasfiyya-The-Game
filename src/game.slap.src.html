@@ -916,7 +916,7 @@ function update(dt) {
   if (!SLAP.cur && SLAP.target) { if (SLAP.target.state === 'struck') SLAP.target.state = 'walking'; SLAP.target = null; }
   if (SLAP.fx) { SLAP.fx.t += dt; if (SLAP.fx.t > 0.55) SLAP.fx = null; }
 
-  const targetVz = Math.max(0, iy) * 2.4;
+  const targetVz = Math.max(0, iy) * 3.0;               // brisk pace (was 2.4 m/s)
   const targetVx = ix * 2.1;
   const ease = 1 - Math.exp(-dt * (SLAP.cur ? 16 : 6));   // plant her feet quickly when a slap starts
   P.vz += (targetVz - P.vz) * ease;
@@ -926,7 +926,7 @@ function update(dt) {
   if (P.x > STREET_HALF) { P.x = STREET_HALF; P.vx = 0; }
   if (P.x < -STREET_HALF) { P.x = -STREET_HALF; P.vx = 0; }
   const speed = Math.hypot(P.vz, P.vx * 0.5);
-  P.phase += speed * dt / 2.4 * 24;                   // 24 video frames per stride (2.4 m) = natural 24 fps at walking pace
+  P.phase += speed * dt / 2.2 * 24;                   // 24 video frames per 2.2 m stride: ~33 fps at 3 m/s, a brisker step
 
   // camera preset easing + slap framing (shift/pull-back so granma and the struck man both fit the screen)
   const cp = CAM_PRESETS[camIdx], ce = 1 - Math.exp(-dt * 5);
