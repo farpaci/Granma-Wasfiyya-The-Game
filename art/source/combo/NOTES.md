@@ -28,4 +28,7 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_uncle_walk_sheet.webp` | ChatGPT 1536x1024 RGBA, TRANSPARENT background (use alpha, no keying). 8 separate frames ~455 px. Prayer beads missing in two frames (accepted). |
 | `man_thobe_sheet.webp` | Remade thobe man (replaces all earlier thobe images and his in-game walk/frozen sprites). 1672x941 RGBA, TRANSPARENT background, five separate figures. 1, 2, 4, 5 correct; dodge (3) leans towards granma: mirror. |
 | `man_thobe_walk_sheet.webp` | ChatGPT 1536x1024 RGBA, TRANSPARENT background, 8 separate frames ~460 px. |
+| `man_hoodie_base.webp` | Remade hoodie man (new face, replaces the removed one), 1024x1536. |
+| `man_hoodie_sheet.webp` | 1672x941, five separate figures. 1, 2, 4, 5 correct; dodge (3) leans towards granma: mirror. |
+| `man_hoodie_walk_sheet.webp` | ChatGPT 1536x1024, green background, 8 separate frames ~470 px. |
 **Touching figures:** in `man_tank_sheet` (figures 3+4), `man_tee_sheet` (4+5) and `man_shirt_sheet` (3+4) the kicked figure's raised leg touches its neighbour, so they form one connected blob. Split at the narrowest joining column when cutting (contact is only a shoe/hem).
