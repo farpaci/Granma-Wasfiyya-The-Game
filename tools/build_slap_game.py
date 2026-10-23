@@ -8,7 +8,7 @@ for f in sorted(glob.glob(os.path.join(root, 'assets', '*'))):
     assets[name] = b64(f, 'image/jpeg' if ext == '.jpg' else 'image/png')
 for f in sorted(glob.glob(os.path.join(root, 'assets_video', 'walk_*.webp'))):
     assets[os.path.splitext(os.path.basename(f))[0]] = b64(f, 'image/webp')
-for f in sorted(glob.glob(os.path.join(root, 'assets_slap', 'slap*.webp'))):
+for f in sorted(glob.glob(os.path.join(root, 'assets_slap', 'slap*.webp')) + glob.glob(os.path.join(root, 'assets_slap', 'kick_*.webp'))):
     assets[os.path.splitext(os.path.basename(f))[0]] = b64(f, 'image/webp')
 for f in sorted(glob.glob(os.path.join(root, 'assets_slap', 'sfx_*.mp3'))):
     assets[os.path.splitext(os.path.basename(f))[0]] = b64(f, 'audio/mpeg')

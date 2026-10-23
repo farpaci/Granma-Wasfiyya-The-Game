@@ -39,10 +39,10 @@
   /* HUD right */
   #hud-r{position:fixed;z-index:20;right:calc(min(2vw,26px) + var(--sr));top:calc(min(2vh,22px) + var(--st));display:flex;gap:6px;align-items:stretch}
   .panel{background:rgba(20,28,36,.62);border:1px solid rgba(255,255,255,.16);border-radius:12px;backdrop-filter:blur(6px);color:#fff}
-  #dist,#slaps{padding:.2em .6em .15em;text-align:left;min-width:92px;border-radius:9px}
-  #slaps{min-width:62px}
-  #dist small,#slaps small{display:block;font-size:8px;letter-spacing:.14em;opacity:.85;font-weight:800}
-  #dist span,#slaps span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(15px,2.6vmin,22px);letter-spacing:.04em;line-height:1.05}
+  #dist,#slaps,#ko{padding:.2em .6em .15em;text-align:left;min-width:92px;border-radius:9px}
+  #slaps,#ko{min-width:62px}
+  #dist small,#slaps small,#ko small{display:block;font-size:8px;letter-spacing:.14em;opacity:.85;font-weight:800}
+  #dist span,#slaps span,#ko span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(15px,2.6vmin,22px);letter-spacing:.04em;line-height:1.05}
   #pause,#fs,#helpbtn{width:36px;border:1px solid rgba(255,255,255,.16);border-radius:9px;color:#fff;background:rgba(20,28,36,.62);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(6px)}
   #pause:active,#fs:active,#helpbtn:active{transform:scale(.95)}
   #fs,#helpbtn{font-size:17px;line-height:1;padding:0;font-family:system-ui,sans-serif;font-weight:800}
@@ -111,6 +111,7 @@
 <div id="hud-r">
   <div id="dist" class="panel"><small>DISTANCE</small><span id="distv">00000 m</span></div>
   <div id="slaps" class="panel"><small>SLAPS</small><span id="slapsv">0</span></div>
+  <div id="ko" class="panel"><small>KO</small><span id="kov">0</span></div>
   <button id="pause" aria-label="Pause"><i></i></button>
   <button id="fs" aria-label="Fullscreen" hidden>⛶</button>
   <button id="helpbtn" aria-label="Help">?</button>
@@ -124,14 +125,14 @@
     <kbd>D / →</kbd><em>Move right</em>
     <kbd>Mouse</kbd><em>Look around (drag)</em>
     <kbd>Q / E</kbd><em>Change camera angle</em>
-    <kbd>Space</kbd><em>Slap the nearest man</em>
+    <kbd>Space</kbd><em>Slap / kick the nearest man</em>
     <kbd>J / K</kbd><em>Near / far air slap</em>
     <kbd>P</kbd><em>Pause</em>
   </div>
   <div class="tc">
     <kbd>○ Stick</kbd><em>Move / turn</em>
     <kbd>Drag</kbd><em>Look around</em>
-    <kbd>✋</kbd><em>Slap the nearest man</em>
+    <kbd>✋</kbd><em>Slap, slap, kick</em>
     <kbd>II</kbd><em>Pause</em>
   </div>
   <div class="foot kb">Press H to close</div>
@@ -159,7 +160,7 @@ if (isTouch) document.body.classList.add('touch');
 
 /* ---------- assets ---------- */
 const IMG = {};
-const isSlapKey = k => k.startsWith('slap');
+const isSlapKey = k => k.startsWith('slap') || k.startsWith('kick_');
 const isSfxKey = k => k.startsWith('sfx_');
 function loadKeys(keep) {
   return Promise.all(Object.entries(ASSETS).filter(([k]) => keep(k)).map(([k, src]) => new Promise(res => {
@@ -169,7 +170,7 @@ function loadKeys(keep) {
     im.src = src;
   })));
 }
-const isEnemyKey = k => k.startsWith('frozen_') || /^walk_[a-z]/.test(k);
+const isEnemyKey = k => /^(walk_[a-z]|hit[12]_|fall_|down_)/.test(k);
 const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k) && !isEnemyKey(k));   // core art first; slap frames decode in the background
 
 /* ---------- slap system ---------- */
@@ -177,10 +178,22 @@ const SLAP = { cur: null, fx: null, target: null, frame: null, next: 'A', lastSi
 const NEAR_RANGE = 1.8;                       // metres: closer than this -> near slap (A), else far slap (B)
 const SFX = {};
 for (const k of ['A', 'B']) { const u = ASSETS['sfx_slap' + k]; if (u) { SFX[k] = new Audio(u); SFX[k].preload = 'auto'; } }
-function playSlap(k) { const a = SFX[k]; if (!a) return; const c = a.cloneNode(); c.volume = 0.9; c.play().catch(() => {}); }
+function playSlap(k, v) { const a = SFX[k]; if (!a) return; const c = a.cloneNode(); c.volume = v || 0.9; c.play().catch(() => {}); }
+const KICK_HIT = 0.16, KICK_B = 0.38, KICK_END = 0.58, KICK_KEYS = ['kick_0', 'kick_1', 'kick_2'];
+let AC = null;
+function playKick() {                        // low synthesised thump + a softer slap
+  playSlap('B', 0.45);
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
+    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+    g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 0.27);
+  } catch (e) {}
+}
 function startSlap(kind, side) {              // kind 'A' near | 'B' far; side -1 left | +1 right (left = mirrored clip)
   if (SLAP.cur || paused || !SLAP.ready) return false;
-  SLAP.cur = { kind, side, flip: side < 0, t: 0, hit: false };
+  SLAP.cur = { kind, side, flip: side < 0, t: 0, hit: false, kick: kind === 'K' };
   return true;
 }
 function slapAt(enemy) {                      // hook for the enemy system: enemy = { x, z } in world metres
@@ -197,7 +210,7 @@ function slapAuto() {
   if (SLAP.cur || paused || !SLAP.ready) return;
   let best = null, bd = 9;
   for (const e of enemies) {
-    if (e.state !== 'walking') continue;
+    if (e.tgt || (e.state !== 'walking' && e.state !== 'hit1' && e.state !== 'hit2')) continue;
     const dz = e.z - P.z;
     if (dz < -0.2 || dz > 3.0 || Math.abs(e.x - P.x) >= 2.2 || dz >= bd) continue;
     best = e; bd = dz;
@@ -205,13 +218,21 @@ function slapAuto() {
   if (best) { slapEnemy(best); return; }
   const k = SLAP.next; if (startSlap(k, sideNow())) SLAP.next = k === 'A' ? 'B' : 'A';
 }
-function slapEnemy(e) { if (!e || e.state !== 'walking' || !startSlap(e.clip, e.side)) return false; e.state = 'struck'; SLAP.target = e; SLAP.frame = e; return true; }
+function slapEnemy(e) {
+  if (!e || e.tgt || (e.state !== 'walking' && e.state !== 'hit1' && e.state !== 'hit2')) return false;
+  const kick = e.state === 'hit2';             // 3rd blow = kick
+  if (!startSlap(kick ? 'K' : e.clip, e.side)) return false;
+  e.tgt = kick ? 2 : 1; SLAP.target = e; SLAP.frame = e; return true;
+}
 
 /* ---------- enemies ---------- */
-const enemies = [], EN = { ready: false, t: 2, last: '', lastSide: 1, count: 0 }, EN_IDS = ['thobe', 'tank', 'tee', 'shirt', 'shemagh'];
-const EN_H = { thobe: 1.90, tank: 1.82, tee: 1.85, hoodie: 1.75, shirt: 1.80, shemagh: 1.75 }, EN_SPEED = 1.25, EN_KEYS = {};
+const enemies = [], EN = { ready: false, t: 2, last: '', lastSide: 1, count: 0, ko: 0 }, EN_IDS = ['thobe', 'tank', 'tee', 'hoodie', 'shirt', 'shemagh', 'tourist', 'suit', 'courier', 'influencer', 'uncle'];
+const EN_H = { thobe: 1.85, tank: 1.82, tee: 1.85, hoodie: 1.78, shirt: 1.80, shemagh: 1.75, tourist: 1.78, suit: 1.85, courier: 1.78, influencer: 1.80, uncle: 1.72 }, EN_SPEED = 1.25, EN_KEYS = {}, EN_PK = {};
 function enemyInit() {
-  for (const id of EN_IDS) EN_KEYS[id] = Array.from({ length: META_ENEMY[id].walk.n }, (_, i) => 'walk_' + id + '_' + String(i).padStart(2, '0'));
+  for (const id of EN_IDS) {
+    EN_KEYS[id] = Array.from({ length: META_ENEMY[id].walk.n }, (_, i) => 'walk_' + id + '_' + String(i).padStart(2, '0'));
+    EN_PK[id] = { hit1: 'hit1_' + id, hit2: 'hit2_' + id, fall: 'fall_' + id, down: 'down_' + id };
+  }
   EN.ready = true;
 }
 function spawnEnemy() {
@@ -225,32 +246,42 @@ function spawnEnemy() {
   const faceY = H * (1 - w.headTop - w.face / 2) * w.h / M.heightPx;          // face centre height in metres
   const clip = Math.abs(faceY - hand.A.y_m) < Math.abs(faceY - hand.B.y_m) ? 'A' : 'B';
   const L = hand[clip].x_m + Math.random() * 0.12;
-  enemies.push({ id, H, side, L, clip, faceY, x: P.x + side * L, z, dist: Math.random() * 3, state: 'walking', settle: 0, keys: EN_KEYS[id] });
+  enemies.push({ id, H, side, L, clip, faceY, x: P.x + side * L, z, dist: Math.random() * 3, state: 'walking', tgt: 0, t: 0, x0: 0, keys: EN_KEYS[id], pk: EN_PK[id] });
   EN.last = id; EN.lastSide = side;
   return true;
+}
+function engage(e, f) {                       // lerp a targeted man so her hand (slap) / foot (kick) meets his face / hip on screen
+  const hx = e.tgt === 2 ? META_SLAP.K.foot.x_m : META_ENEMY._slapHand[e.clip].x_m, ke = focal / (cam.D + 0.15);
+  const tx = cam.x + (P.x + e.side * hx - cam.x) * (focal / cam.D) / ke;
+  e.x += (tx - e.x) * f; e.z += (P.z + 0.15 - e.z) * f;
 }
 function updateEnemies(dt) {
   if (EN.ready) {
     EN.t -= dt;
     if (EN.t <= 0) EN.t = enemies.length < 6 && !spawnEnemy() ? 0.3 : enemies.length >= 6 ? 0.5 : 2 + Math.random() * 2.5;
   }
-  const camZ = P.z - cam.D, hands = META_ENEMY._slapHand;
+  const camZ = P.z - cam.D;
   for (let i = enemies.length - 1; i >= 0; i--) {
-    const e = enemies[i];
-    if (e.state === 'walking') {
+    const e = enemies[i], st = e.state;
+    let dead = false;
+    if (e.tgt) engage(e, 1 - Math.exp(-dt * 14));
+    else if (st === 'walking') {
       e.z -= EN_SPEED * dt; e.dist += EN_SPEED * dt;
       if (e.z - P.z < 20) {
         const tx = P.x + e.side * e.L, d = tx - e.x, m = 0.8 * dt;
         e.x += d > m ? m : d < -m ? -m : d;
       }
-    } else if (e.state === 'struck' || e.settle) {
-      const hd = hands[e.clip], tz = P.z + 0.15, ke = focal / (cam.D + 0.15);
-      const tx = cam.x + (P.x + e.side * hd.x_m - cam.x) * (focal / cam.D) / ke;
-      const f = e.settle ? 1 : 1 - Math.exp(-dt * 14);
-      e.x += (tx - e.x) * f; e.z += (tz - e.z) * f; e.settle = 0;
-    }
-    if (e.z < camZ + 0.8 || e.z > P.z + MAX_DRAW + 10) {
+    } else if (st === 'hit1' || st === 'hit2') {
+      e.t += dt; if (e.t > 3.5) e.state = 'walking';      // not hit again: he walks on
+      if ((e.x - P.x) * e.side < 0.7) e.x = P.x + e.side * 0.7;   // never overlap her
+    } else if (st === 'fall') {
+      e.t += dt; const u = Math.min(1, e.t / 0.35);
+      e.x = e.x0 + e.side * 0.6 * u * (2 - u);
+      if (e.t >= 0.35) { e.state = 'down'; e.t = 0; }
+    } else { e.t += dt; if (e.t > 1.5) dead = true; }
+    if (dead || e.z < camZ + 0.8 || e.z > P.z + MAX_DRAW + 10) {
       if (SLAP.target === e) SLAP.target = null;
+      if (SLAP.frame === e) SLAP.frame = null;
       enemies.splice(i, 1);
     }
   }
@@ -258,24 +289,31 @@ function updateEnemies(dt) {
 }
 const byZ = (a, b) => b.z - a.z;
 function drawEnemy(e, camZ) {
-  const M = META_ENEMY[e.id], fr = e.state === 'frozen', sp = fr ? M.frozen : M.walk, n = M.walk.n;
-  const im = fr ? IMG['frozen_' + e.id] : IMG[e.keys[Math.floor(e.dist / (EN_SPEED * M.walk.loop) * n) % n]];
+  const M = META_ENEMY[e.id], st = e.state, side = e.side, walk = st === 'walking', sp = walk ? M.walk : M[st], n = M.walk.n;
+  const im = IMG[walk ? e.keys[Math.floor(e.dist / (EN_SPEED * M.walk.loop) * n) % n] : e.pk[st]];
   if (!im) return;
   const dz = e.z - camZ; if (dz < 0.3) return;
   const k = focal / dz, sc = e.H / M.heightPx * k, w = im.width * sc, h = im.height * sc;
-  const sx = W / 2 + (e.x - cam.x) * k - yaw * focal;
+  let sx = W / 2 + (e.x - cam.x) * k - yaw * focal, rot = 0;
   if (sx + w < -20 || sx - w > W + 20) return;
   const base = cam.hz * H + cam.h * k;
   if (base - h > H) return;
   let a = dz > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dz) / 35) : 1;
   if (e.z < P.z - 0.6) a *= Math.max(0, 1 - (P.z - 0.6 - e.z) / 1.5);
+  if (st === 'down' && e.t > 0.9) a *= Math.max(0, 1 - (e.t - 0.9) / 0.6);
   if (a <= 0) return;
+  if (st === 'hit1' || st === 'hit2') { rot = sp.rot || 0; if (e.t < 0.12) sx += Math.sin(e.t * 80) * (1 - e.t / 0.12) * 0.04 * e.H * k; }
+  else if (st === 'fall') { const u = Math.min(1, e.t / 0.35); rot = (sp.rot || 0) + 20 * u * (2 - u); }
   ctx.globalAlpha = a * 0.35; ctx.fillStyle = '#2a1608';
-  ctx.beginPath(); ctx.ellipse(sx, base - e.H * k * 0.005, M.walk.w * sc * 0.42, e.H * k * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx, base - e.H * k * 0.005, (st === 'down' ? sp.w : M.walk.w) * sc * 0.42, e.H * k * 0.05, 0, 0, Math.PI * 2); ctx.fill();
   ctx.globalAlpha = a;
-  ctx.drawImage(im, sx - w * sp.pivot, base - h, w, h);
+  ctx.save(); ctx.translate(sx, base);
+  if (rot) ctx.rotate(rot * side * Math.PI / 180);
+  if (side < 0) ctx.scale(-1, 1);                       // poses are baked for a man on her right; mirror for her left
+  ctx.drawImage(im, -w * sp.pivot, -h, w, h);
   const fogA = Math.min(0.5, Math.max(0, (dz - 22) / 170)) * a;
-  if (fogA > 0.03) { ctx.globalAlpha = fogA; ctx.drawImage(fogCanvas(im), sx - w * sp.pivot, base - h, w, h); }
+  if (fogA > 0.03) { ctx.globalAlpha = fogA; ctx.drawImage(fogCanvas(im), -w * sp.pivot, -h, w, h); }
+  ctx.restore();
   ctx.globalAlpha = 1;
 }
 
@@ -831,7 +869,10 @@ function drawMama() {
   const hw = PLAYER_H * p.k, sc = hw / META.h;          // walk sprite height = player height; everything else scales with it
   const sl = SLAP.cur;
   let im, pivot, lean = 0, flip = false;
-  if (sl) {
+  if (sl && sl.kick) {
+    const i = sl.t < KICK_HIT ? 0 : sl.t < KICK_B ? 1 : 2;
+    im = IMG[KICK_KEYS[i]]; pivot = META_SLAP.K.frames[i].pivot; flip = sl.flip;
+  } else if (sl) {
     const M = META_SLAP[sl.kind], idx = Math.min(Math.floor(sl.t), M.n - 1);
     im = IMG['slap' + sl.kind + '_' + String(idx).padStart(2, '0')]; pivot = M.pivot; flip = sl.flip;
   } else {
@@ -858,12 +899,17 @@ function drawMama() {
 function drawSlapFx() {
   const f = SLAP.fx; if (!f) return;
   const p = proj(P.x, P.z), h = PLAYER_H * p.k;
-  const x = p.sx + f.side * h * (f.kind === 'B' ? 0.78 : 0.58), y = p.base - h * 0.66 - f.t * h * 0.14;
+  const x0 = p.sx + f.side * (f.kind === 'K' ? META_SLAP.K.foot.x_m * p.k * 1.05 : h * (f.kind === 'B' ? 0.78 : 0.58)), y = p.base - (f.kind === 'K' ? (META_SLAP.K.foot.y_m + 0.5) * p.k : h * 0.66) - f.t * h * 0.14;
+  const txt = f.kind === 'K' ? 'KICK!' : 'SLAP!';
+  ctx.save();
+  ctx.font = Math.round(Math.min(h * 0.2, W * 0.15)) + 'px "Lilita One", Impact, sans-serif';   // never wider than the screen
+  const half = ctx.measureText(txt).width * 0.66 + h * 0.03;                    // half width at full pop scale (1.28) + stroke
+  const x = Math.max(half + 6, Math.min(W - half - 6, x0));                     // keep the whole word on screen
   const a = Math.max(0, 1 - f.t / 0.55), s = 1 + 0.28 * Math.sin(Math.min(1, f.t / 0.14) * Math.PI / 2);
-  ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(f.side * 0.12); ctx.scale(s, s);
-  ctx.font = Math.round(h * 0.2) + 'px "Lilita One", Impact, sans-serif'; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
-  ctx.lineWidth = h * 0.04; ctx.strokeStyle = '#2a0d08'; ctx.strokeText('SLAP!', 0, 0);
-  ctx.fillStyle = '#ffc83a'; ctx.fillText('SLAP!', 0, 0); ctx.restore();
+  ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(f.side * 0.12); ctx.scale(s, s);
+  ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+  ctx.lineWidth = h * 0.04; ctx.strokeStyle = '#2a0d08'; ctx.strokeText(txt, 0, 0);
+  ctx.fillStyle = '#ffc83a'; ctx.fillText(txt, 0, 0); ctx.restore();
 }
 
 /* ---------- slap framing ---------- */
@@ -872,9 +918,9 @@ function frameCam(dt) {
   const e = SLAP.frame, sl = SLAP.cur;
   if (!sl) SLAP.frame = null;
   if (e && sl) {
-    const M = META_SLAP[sl.kind], mpp = PLAYER_H / META.h, ME = META_ENEMY[e.id];
+    const kk = sl.kick, M = kk ? META_SLAP.K.frames[1] : META_SLAP[sl.kind], mpp = PLAYER_H / META.h, ME = META_ENEMY[e.id];
     const pl = -M.pivot * M.w * mpp, pr = (1 - M.pivot) * M.w * mpp;              // clip extent around her pivot (metres)
-    const mc = e.side * META_ENEMY._slapHand[e.clip].x_m, mh = ME.frozen.w * e.H / ME.heightPx * 0.5;
+    const mc = e.side * (kk ? META_SLAP.K.foot.x_m : META_ENEMY._slapHand[e.clip].x_m), mh = ME.hit2.w * e.H / ME.heightPx * 0.5 + (kk ? 0.5 : 0);
     const o = P.x * 0.18, xl = o + Math.min(sl.flip ? -pr : pl, mc - mh), xr = o + Math.max(sl.flip ? -pl : pr, mc + mh);   // relative to the unshifted camera
     const lim = W * 0.42, hm = Math.max(e.H, PLAYER_H);
     const Dh = hm > cam.h ? focal * (hm - cam.h) / (H * (cam.hz - 0.04)) : 0;     // keep heads below the top edge
@@ -902,18 +948,23 @@ function update(dt) {
   if (ix !== 0) SLAP.lastSide = Math.sign(ix);
   const sl = SLAP.cur;
   if (sl) {                                           // she plants her feet while slapping
-    const M = META_SLAP[sl.kind];
-    sl.t += dt * M.fps;
-    if (!sl.hit && sl.t >= M.hit) {
-      sl.hit = true; playSlap(sl.kind); SLAP.fx = { t: 0, side: sl.side, kind: sl.kind };
+    const kk = sl.kick, M = kk ? null : META_SLAP[sl.kind];
+    sl.t += kk ? dt : dt * M.fps;
+    if (!sl.hit && sl.t >= (kk ? KICK_HIT : M.hit)) {
+      sl.hit = true; if (kk) playKick(); else playSlap(sl.kind);
+      SLAP.fx = { t: 0, side: sl.side, kind: sl.kind };
       const t = SLAP.target;
-      if (t && t.state === 'struck') { t.state = 'frozen'; t.settle = 1; EN.count++; $('slapsv').textContent = EN.count; }
+      if (t && t.tgt) {
+        engage(t, 1); t.tgt = 0; t.t = 0;
+        if (kk) { t.state = 'fall'; t.x0 = t.x; EN.ko++; $('kov').textContent = EN.ko; }
+        else { t.state = t.state === 'walking' ? 'hit1' : 'hit2'; EN.count++; $('slapsv').textContent = EN.count; }
+      }
       SLAP.target = null;
     }
-    if (sl.t >= M.n) SLAP.cur = null;
+    if (sl.t >= (kk ? KICK_END : M.n)) SLAP.cur = null;
     ix = 0; iy = 0;
   }
-  if (!SLAP.cur && SLAP.target) { if (SLAP.target.state === 'struck') SLAP.target.state = 'walking'; SLAP.target = null; }
+  if (!SLAP.cur && SLAP.target) { SLAP.target.tgt = 0; SLAP.target = null; }
   if (SLAP.fx) { SLAP.fx.t += dt; if (SLAP.fx.t > 0.55) SLAP.fx = null; }
 
   const targetVz = Math.max(0, iy) * 3.0;               // brisk pace (was 2.4 m/s)
