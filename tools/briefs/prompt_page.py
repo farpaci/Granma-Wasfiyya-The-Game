@@ -61,11 +61,14 @@ cards.append(('Beyaz thobe (thobe)', 'Sadece kaçma pozu (düzeltme)', 'Gemini �
   "Show him ONCE, with exactly one head: after a second slap from someone on his right, he leans his whole upper body about 45 degrees to HIS LEFT (towards the right side of the image), "
   "bending sideways at the waist, feet still planted shoulder-width apart, both forearms raised in front of his face defensively, flinching, one eye peeking out, frightened. "
   "Front view, camera at chest height. " + tech()))
+DONE_NEW = {'tourist'}
 for mid, tr, desc in NEW:
+    if mid in DONE_NEW: continue
     sec = f'Yeni: {tr} ({mid})'
     cards.append((sec, 'Temel görsel', 'Gemini · görsel', None, 'Referans yok. Sonraki kartlarda bu görseli ekleyeceksin.', f'man_{mid}_base.png',
       f"Full-body photo of {desc}, standing upright facing the camera, arms relaxed at his sides, neutral slightly cocky expression, camera at chest height. {tech()}"))
-    cards.append((sec, 'Yürüme videosu', 'Viggle', None, f'man_{mid}_base.png görselini Viggle\'a yükle, "walk towards camera" şablonu, yeşil fon. Mümkünse ücretli plan (filigransız).', f'man_{mid}_walk.mp4', None))
+    cards.append((sec, 'Yürüme videosu', 'Gemini · video', None, f'man_{mid}_base.png görselini ilk kare olarak ekle.', f'man_{mid}_walk.mp4',
+      f"An 8-second video of the man in the attached image ({desc}) walking steadily straight towards the camera at a normal relaxed pace, arms swinging naturally. He keeps walking the whole time: he does not stop, wave, pose, use his phone or camera, or look around. The camera is static and far enough back that his whole body, head to shoes, stays in frame at all times with margin, and he stays roughly the same size (walking in place towards the camera, like on a treadmill). Perfectly flat chroma-key green background (#00B140), no floor, no cast shadow, no other people, no text, no logo, no watermark."))
     cards.append((sec, '5 poz tek görselde', 'Gemini · görsel 16:9', None, f'man_{mid}_base.png görselini ekle, en-boy oranını 16:9 seç.', f'man_{mid}_sheet.png',
       sheet_prompt("Use the attached reference photo.", desc)))
 imgs = {n: thumb(n) for n in sorted({c[3] for c in cards if c[3]})}
