@@ -16,7 +16,7 @@ V = {
     ('calm', (0, 100, 520, 500), (255, 462)), ('impact', (520, 60, 1042, 540), (800, 455)), ('jump', (1042, 60, 1536, 580), (1275, 445)),
     ('runners', (60, 520, 780, 960), None), ('after', (800, 680, 1536, 990), (1195, 885))]),
  'a_stay': dict(file='group_adana_a_stay_sheet.webp', kind='stay', ppm=300, panels=[
-    ('calm', (0, 140, 660, 600), (335, 568)), ('impact', (660, 90, 1300, 640), (1030, 525)), ('after', (1300, 60, 2000, 690), (1650, 595))]),
+    ('calm', (0, 140, 660, 600), (335, 568)), ('impact', (660, 90, 1300, 640), (1030, 525)), ('after', (1300, 60, 2000, 690), (1650, 595), 1.75 / 1.45)]),   # 4th: own scale (this panel was drawn smaller: standing men came out 1.45 m, want 1.75 m)
  'b_run':  dict(file='group_adana_b_run_sheet.webp', kind='run', ppm=240, panels=[
     ('calm', (0, 100, 500, 460), (250, 440)), ('impact', (520, 80, 1020, 470), (750, 435)), ('jump', (1020, 50, 1536, 470), (1250, 430)),
     ('runners', (60, 500, 740, 950), None), ('after', (830, 670, 1536, 980), (1180, 890))]),
@@ -51,17 +51,18 @@ for name, v in V.items():
     full = key_green(rgba[..., :3]) if v['kind'] == 'run' else rgba
     after = next(p for p in v['panels'] if p[0] == 'after'); axA, ayA = after[2] if after[2] else (0, 0)
     frames = []; runners = None; crops = []
-    for k, (key, (x0, y0, x1, y1), anc) in enumerate(v['panels']):
+    for k, (key, (x0, y0, x1, y1), anc, *kx) in enumerate(v['panels']):
+        sc = SC * (kx[0] if kx else 1)
         c = full[y0:y1, x0:x1].copy(); ys, xs = np.nonzero(c[..., 3] > 8)
         bx0, bx1, by0, by1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
         c = c[by0:by1, bx0:bx1]
         if anc is None:       # runners: keep their offset to the panel's own bbox, start around the table (after-panel anchor)
             runners = k; ax, ay = (c.shape[1] / 2, c.shape[0] - 55)
         else: ax, ay = anc[0] - x0 - bx0, anc[1] - y0 - by0
-        ci = Image.fromarray(c, 'RGBA'); w, h = max(1, round(ci.width * SC)), max(1, round(ci.height * SC))
+        ci = Image.fromarray(c, 'RGBA'); w, h = max(1, round(ci.width * sc)), max(1, round(ci.height * sc))
         ci = ci.resize((w, h), Image.LANCZOS)
         ci.save(os.path.join(OUT, f'{name}_{k}.webp'), quality=Q, method=6)
-        frames.append(dict(key=f'{name}_{k}', w=w, h=h, ax=round(ax * SC, 1), ay=round(ay * SC, 1))); crops.append(ci)
+        frames.append(dict(key=f'{name}_{k}', w=w, h=h, ax=round(ax * sc, 1), ay=round(ay * sc, 1))); crops.append(ci)
     meta[name] = dict(frames=frames, mpp=round(v['ppm'] * SC, 2), kind=v['kind'], runners=runners)
     sheets.append((name, crops, frames, v['ppm'] * SC))
 json.dump(meta, open(os.path.join(OUT, 'meta_group.json'), 'w'))
