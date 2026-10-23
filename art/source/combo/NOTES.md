@@ -11,3 +11,4 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_thobe_hit2_BROKEN.jpg` | Has a second floating head (top left): not usable, waiting for a regenerated version. Lean direction (screen-right) is correct. |
 | `man_thobe_fall.jpg` | Falls towards screen-right, correct. Tilt is ~30° (game can add rotation). |
 | `man_thobe_down.jpg` | Landscape, feet towards camera, correct. |
+| `man_tee_sheet.jpg` | 2000x1116. 1, 2, 4 correct. Dodge (3) barely leans (~10°): add in-game rotation away from Granma. Down (5) lies head towards the camera (accepted). Figure 5's shoe is close to figure 4's standing foot but not touching. |
