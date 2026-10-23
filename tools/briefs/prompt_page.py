@@ -50,16 +50,10 @@ def sheet_prompt(ref_sentence, desc):
         "4. Kicked: falling sideways to HIS LEFT after a kick on his right hip, body tilted about 60 degrees, right leg lifted off the ground, arms flailing, shocked open mouth, only his left foot still touching the ground.\n"
         "5. Knocked down: lying flat on his back on the ground, dazed, eyes closed, arms spread, feet pointing towards the camera and head away from it, seen from slightly above.\n\n" + SHEET_BG)
 REF_EXISTING = ("Use the attached reference image: it shows the same man twice, a small walking frame on the left (his outfit) and a large sharp photo on the right (his face, hair, beard and build).")
-DONE = {'tank', 'thobe', 'tee', 'shirt', 'shemagh'}
+DONE = {'tank', 'tee', 'shirt', 'shemagh'}
 for mid, tr, desc in MEN:
     if mid in DONE: continue
-    cards.append((f'{tr} ({mid})', '5 poz tek görselde', 'Gemini · görsel 16:9', f'man_{mid}.png', 'En-boy oranını 16:9 seç.', f'man_{mid}_sheet.png', sheet_prompt(REF_EXISTING, desc)))
-cards.append(('Beyaz thobe (thobe)', 'Sadece kaçma pozu (düzeltme)', 'Gemini · görsel', None,
-  'Daha önce ürettiğin man_thobe_ref.jpg (ayakta duran, net) görselini ekle. Diğer 4 pozu tamam.', 'man_thobe_hit2.png',
-  "Use the attached reference photo: keep exactly the same man, face, beard, white thobe, white ghutra with black agal and brown sandals. "
-  "Show him ONCE, with exactly one head: after a second slap from someone on his right, he leans his whole upper body about 45 degrees to HIS LEFT (towards the right side of the image), "
-  "bending sideways at the waist, feet still planted shoulder-width apart, both forearms raised in front of his face defensively, flinching, one eye peeking out, frightened. "
-  "Front view, camera at chest height. " + tech()))
+    cards.append((f'{tr} ({mid})', '5 poz tek görselde', 'Gemini · görsel 16:9', f'man_{mid}.png', 'En-boy oranını 16:9 seç.' + (' Daha önce ürettiğin net thobe görselini (man_thobe_ref.jpg) de eklersen yüz daha tutarlı olur.' if mid == 'thobe' else ''), f'man_{mid}_sheet.png', sheet_prompt(REF_EXISTING, desc)))
 DONE_NEW = {'tourist', 'suit', 'courier', 'influencer', 'uncle'}
 for mid, tr, desc in NEW:
     if mid in DONE_NEW: continue
