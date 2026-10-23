@@ -28,4 +28,7 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_influencer_base.webp` | New man `influencer`, 1024x1536, holds a phone on a selfie stick. |
 | `man_influencer_sheet.webp` | 1672x941, all five figures separate. No selfie stick in any pose (reads as the phone being knocked away on the first slap; accepted). Hit1 (2) holds his LEFT cheek and dodge (3) leans towards granma: mirror both. 4, 5 correct. |
 | `man_influencer_walk_sheet.webp` | ChatGPT 1536x1024, green background, 8 separate frames ~465 px, selfie stick raised in all frames. |
+| `man_uncle_base.jpg` | New man `uncle`, 2000x1116 neutral reference (prayer beads in his left hand). |
+| `man_uncle_sheet.webp` | 1672x941, all five figures separate and all directions correct (dodge leans away from granma), no mirroring needed. |
+| `man_uncle_walk_sheet.webp` | ChatGPT 1536x1024 RGBA, TRANSPARENT background (use alpha, no keying). 8 separate frames ~455 px. Prayer beads missing in two frames (accepted). |
 **Touching figures:** in `man_tank_sheet` (figures 3+4), `man_tee_sheet` (4+5) and `man_shirt_sheet` (3+4) the kicked figure's raised leg touches its neighbour, so they form one connected blob. Split at the narrowest joining column when cutting (contact is only a shoe/hem).
