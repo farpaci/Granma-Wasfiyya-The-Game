@@ -22,4 +22,7 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_suit_base.jpg` | New man `suit`, 2000x1116 neutral reference. |
 | `man_suit_sheet.jpg` | 2000x1116, all five figures separate. 1, 2, 4, 5 correct. Dodge (3) leans towards granma: mirror. |
 | `man_suit_walk_sheet.webp` | ChatGPT, 1536x1024 RGBA with a TRANSPARENT background (already cut out; use alpha, no keying). 8 separate frames ~465 px tall, 2 rows of 4. Row 2 is close to row 1; build the loop from whichever frames alternate the feet cleanly. |
+| `man_courier_base.webp` | New man `courier`, 1024x1536 neutral reference. |
+| `man_courier_sheet.webp` | 1672x941, all five figures separate. 1, 2, 4, 5 correct. Dodge (3) leans towards granma: mirror. |
+| `man_courier_walk_sheet.webp` | ChatGPT 1536x1024, green background, 8 separate frames ~470 px, 2 rows of 4. |
 **Touching figures:** in `man_tank_sheet` (figures 3+4), `man_tee_sheet` (4+5) and `man_shirt_sheet` (3+4) the kicked figure's raised leg touches its neighbour, so they form one connected blob. Split at the narrowest joining column when cutting (contact is only a shoe/hem).

@@ -20,7 +20,7 @@ MEN = [
 ]
 NEW = [
  ('tourist', 'Turist', 'a sunburnt middle-aged European tourist in a wide straw hat, a loud orange Hawaiian shirt, beige cargo shorts, white socks with sandals and a big camera around his neck'),
- ('courier', 'Kurye', 'a young delivery rider in a blue-and-white jacket, an open-face motorcycle helmet, a square insulated delivery backpack, black trousers and sneakers'),
+ ('courier', 'Kurye', 'a delivery rider in his late twenties, in a blue-and-white jacket, an open-face motorcycle helmet, a square insulated delivery backpack, black trousers and sneakers'),
  ('suit', 'Takım elbiseli', 'a slick businessman in a tight navy suit with an open white collar, slicked-back hair, sunglasses pushed up on his head, a phone in one hand and pointed brown shoes'),
  ('influencer', 'Influencer', 'a man in his early thirties with a trimmed beard and styled hair, a social-media influencer in a bright purple bomber jacket over a white T-shirt, light ripped jeans and chunky white sneakers, holding a phone on a selfie stick'),
  ('fisher', 'Balıkçı', 'a stocky fisherman in a yellow waterproof apron over a blue-and-white striped shirt with rolled sleeves, black rubber boots and a navy woollen cap'),
@@ -61,7 +61,7 @@ cards.append(('Beyaz thobe (thobe)', 'Sadece kaçma pozu (düzeltme)', 'Gemini �
   "Show him ONCE, with exactly one head: after a second slap from someone on his right, he leans his whole upper body about 45 degrees to HIS LEFT (towards the right side of the image), "
   "bending sideways at the waist, feet still planted shoulder-width apart, both forearms raised in front of his face defensively, flinching, one eye peeking out, frightened. "
   "Front view, camera at chest height. " + tech()))
-DONE_NEW = {'tourist', 'suit'}
+DONE_NEW = {'tourist', 'suit', 'courier'}
 for mid, tr, desc in NEW:
     if mid in DONE_NEW: continue
     sec = f'Yeni: {tr} ({mid})'
