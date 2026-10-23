@@ -61,20 +61,6 @@ cards.append(('Beyaz thobe (thobe)', 'Sadece kaçma pozu (düzeltme)', 'Gemini �
   "Show him ONCE, with exactly one head: after a second slap from someone on his right, he leans his whole upper body about 45 degrees to HIS LEFT (towards the right side of the image), "
   "bending sideways at the waist, feet still planted shoulder-width apart, both forearms raised in front of his face defensively, flinching, one eye peeking out, frightened. "
   "Front view, camera at chest height. " + tech()))
-GR = ("the same elderly woman as in the attached reference (black headscarf, brown patterned cardigan with dark trim, red skirt with pink flowers, grey trousers, beige socks, burgundy shoes)")
-sec = 'Granma tekme'
-cards.append((sec, 'Tekme: 3 kare tek görselde', 'Gemini · görsel 16:9', 'granma_back_view.png', 'En-boy oranını 16:9 seç.', 'granma_kick_sheet.png',
-  f"Use the attached reference image: it shows {GR}, from behind, at low resolution. Keep exactly this woman and her clothes.\n\n"
-  "Create ONE wide 16:9 image that shows her THREE times, side by side in a single row, left to right, as the three phases of one kick. All three are seen from DIRECTLY BEHIND at chest height (we see her back, not her face), "
-  "same size and scale, full body from headscarf to shoes, feet on the same baseline, with a wide empty gap between the figures, no figure touching or overlapping another. "
-  "Her target stands to HER RIGHT (the right side of the image), but that person is NOT shown.\n\n"
-  "1. Wind-up: weight on her left leg, right knee lifted and chambered towards her body, arms out for balance, leaning slightly to her left.\n"
-  "2. Kick: her RIGHT leg fully extended sideways to her right at hip height, sole of the shoe pointing right, torso leaning to her left, skirt flaring, arms out.\n"
-  "3. Recover: right foot coming back down next to the left, body straightening, arms lowering.\n\n"
-  "Background: perfectly flat solid chroma-key green (#00B140) across the whole image, no gradient, no floor, no cast shadows, no props. Photorealistic, identical soft studio lighting, sharp focus, no motion blur. "
-  "No text, no numbers, no labels, no logo, no watermark, no border."))
-cards.append((sec, 'Tekme videosu (daha akıcı, isteğe bağlı)', 'Gemini · video', 'granma_back_view.png', 'Video üretebiliyorsan bunu da dene; olursa 3 kare yerine onu kullanırım.', 'granma_kick.mp4',
-  f"A 3-second video of {GR}, seen from directly behind at chest height, on a perfectly flat chroma-key green background (#00B140). She stands still, shifts her weight onto her left leg, then delivers one strong sideways kick with her RIGHT leg out to her right side at hip height, skirt swinging, arms out for balance, holds the kick for a moment, then puts the foot back down and stands normally again. Static camera, full body always in frame with margin, no cast shadow, no other people, no text, no logo, no watermark."))
 for mid, tr, desc in NEW:
     sec = f'Yeni: {tr} ({mid})'
     cards.append((sec, 'Temel görsel', 'Gemini · görsel', None, 'Referans yok. Sonraki kartlarda bu görseli ekleyeceksin.', f'man_{mid}_base.png',

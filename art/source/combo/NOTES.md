@@ -15,4 +15,5 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_shirt_sheet.jpg` | 2000x1116. 1, 2, 4, 5 correct. Dodge (3) leans TOWARDS granma (~20°): mirror it and add rotation. |
 
 | `man_shemagh_sheet.jpg` | 2000x1116, all five figures separate. 1, 2, 4, 5 correct. Dodge (3) leans slightly TOWARDS granma: mirror it and add rotation. |
+| `granma_kick_sheet.jpg` | 2000x1116, back view, three separate figures: wind-up, kick (right leg out to the right at knee-hip height), recover. Scale to the walk sprite by body height. The Gemini video attempt (balancing, arms spread) was rejected. |
 **Touching figures:** in `man_tank_sheet` (figures 3+4), `man_tee_sheet` (4+5) and `man_shirt_sheet` (3+4) the kicked figure's raised leg touches its neighbour, so they form one connected blob. Split at the narrowest joining column when cutting (contact is only a shoe/hem).
