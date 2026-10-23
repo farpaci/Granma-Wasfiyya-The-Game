@@ -61,8 +61,8 @@ for mid, tr, desc in NEW_FIRST + NEW:
     if mid in DONE_NEW: continue
     sec = f'Yeni: {tr} ({mid})'
     has_base = mid == 'thobe'
-    if not has_base: cards.append((sec, 'Temel görsel', 'Gemini · görsel', 'man_hoodie.png' if mid == 'hoodie' else None, 'Yüzü bu referanstaki büyük fotoğraftan alsın. Sonraki kartlarda ürettiğin temel görseli ekleyeceksin.' if mid == 'hoodie' else 'Referans yok. Sonraki kartlarda bu görseli ekleyeceksin.', f'man_{mid}_base.png',
-      ("Use the attached reference only for the face, curly hair and stubble of this man (ignore his pose and expression). " if mid == 'hoodie' else "") + f"Full-body photo of {desc}, standing upright facing the camera, arms relaxed at his sides, neutral slightly cocky expression, camera at chest height. {tech()}"))
+    if not has_base: cards.append((sec, 'Temel görsel', 'Gemini · görsel', None, 'Referans yok. Sonraki kartlarda bu görseli ekleyeceksin.', f'man_{mid}_base.png',
+      f"Full-body photo of {desc}, standing upright facing the camera, arms relaxed at his sides, neutral slightly cocky expression, camera at chest height. {tech()}"))
     cards.append((sec, 'Yürüme: 8 kare tek görselde', 'ChatGPT · görsel 3:2', None, ('Daha önce ürettiğin man_thobe_ref.jpg görselini ekle (repoda art/source/combo/), yatay 3:2 seç.' if has_base else f'man_{mid}_base.png görselini ekle (yoksa eklemeden de olur), yatay 3:2 seç.'), f'man_{mid}_walk_sheet.png',
       f"Using the attached photo as the character reference (same face, hair and outfit): {desc}.\n\n"
       "Create ONE landscape 3:2 image that is a walk-cycle sprite sheet of this man walking straight TOWARDS the viewer, seen from the front, camera at chest height. "
