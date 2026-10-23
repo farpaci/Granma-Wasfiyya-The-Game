@@ -61,7 +61,7 @@ cards.append(('Beyaz thobe (thobe)', 'Sadece kaçma pozu (düzeltme)', 'Gemini �
   "Show him ONCE, with exactly one head: after a second slap from someone on his right, he leans his whole upper body about 45 degrees to HIS LEFT (towards the right side of the image), "
   "bending sideways at the waist, feet still planted shoulder-width apart, both forearms raised in front of his face defensively, flinching, one eye peeking out, frightened. "
   "Front view, camera at chest height. " + tech()))
-DONE_NEW = {'tourist'}
+DONE_NEW = {'tourist', 'suit'}
 for mid, tr, desc in NEW:
     if mid in DONE_NEW: continue
     sec = f'Yeni: {tr} ({mid})'
