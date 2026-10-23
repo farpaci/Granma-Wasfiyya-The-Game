@@ -67,8 +67,20 @@ for mid, tr, desc in NEW:
     sec = f'Yeni: {tr} ({mid})'
     cards.append((sec, 'Temel görsel', 'Gemini · görsel', None, 'Referans yok. Sonraki kartlarda bu görseli ekleyeceksin.', f'man_{mid}_base.png',
       f"Full-body photo of {desc}, standing upright facing the camera, arms relaxed at his sides, neutral slightly cocky expression, camera at chest height. {tech()}"))
-    cards.append((sec, 'Yürüme videosu', 'Gemini · video', None, f'man_{mid}_base.png görselini ilk kare olarak ekle.', f'man_{mid}_walk.mp4',
-      f"An 8-second video of the man in the attached image ({desc}) walking steadily straight towards the camera at a normal relaxed pace, arms swinging naturally. He keeps walking the whole time: he does not stop, wave, pose, use his phone or camera, or look around. The camera is static and far enough back that his whole body, head to shoes, stays in frame at all times with margin, and he stays roughly the same size (walking in place towards the camera, like on a treadmill). Perfectly flat chroma-key green background (#00B140), no floor, no cast shadow, no other people, no text, no logo, no watermark."))
+    cards.append((sec, 'Yürüme: 8 kare tek görselde', 'ChatGPT · görsel 3:2', None, f'man_{mid}_base.png görselini ekle (yoksa eklemeden de olur), yatay 3:2 seç.', f'man_{mid}_walk_sheet.png',
+      f"Using the attached photo as the character reference (same face, hair and outfit): {desc}.\n\n"
+      "Create ONE landscape 3:2 image that is a walk-cycle sprite sheet of this man walking straight TOWARDS the viewer, seen from the front, camera at chest height. "
+      "8 frames in 2 rows of 4, read left to right, top row first. Every frame shows the whole body from head to shoes, at exactly the same size and position within its cell, feet on the same baseline in each row (he walks in place, like on a treadmill), with a clear empty gap of background around every figure; no figure touches another.\n\n"
+      "The 8 frames are one complete stride at an even rhythm:\n"
+      "1. Left foot forward, heel touching the ground, right foot back on its toes; right arm forward, left arm back.\n"
+      "2. Weight on the left foot, body slightly lower, right foot lifting off.\n"
+      "3. Right leg passing the left leg, body at its highest, arms close to the sides.\n"
+      "4. Right foot reaching forward, about to touch down.\n"
+      "5. Right foot forward, heel touching the ground, left foot back on its toes; left arm forward, right arm back.\n"
+      "6. Weight on the right foot, body slightly lower, left foot lifting off.\n"
+      "7. Left leg passing the right leg, body at its highest, arms close to the sides.\n"
+      "8. Left foot reaching forward, about to touch down (leads back into frame 1).\n\n"
+      "Natural relaxed walk, same facial expression in all frames. Background: perfectly flat solid chroma-key green (#00B140) across the whole image, no gradient, no floor, no cast shadows, no grid lines, no props. He wears nothing green. Photorealistic, identical soft frontal studio lighting, sharp focus, no motion blur. No text, no numbers, no labels, no logo, no watermark, no border."))
     cards.append((sec, '5 poz tek görselde', 'Gemini · görsel 16:9', None, f'man_{mid}_base.png görselini ekle, en-boy oranını 16:9 seç.', f'man_{mid}_sheet.png',
       sheet_prompt("Use the attached reference photo.", desc)))
 imgs = {n: thumb(n) for n in sorted({c[3] for c in cards if c[3]})}
