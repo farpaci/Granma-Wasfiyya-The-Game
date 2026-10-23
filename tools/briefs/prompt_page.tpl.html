@@ -1,0 +1,99 @@
+<title>Wasfiyya Prompt Kartları</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* layout: single column of one-prompt cards grouped by character, sticky progress bar */
+:root{
+  --bg:#f6efe6; --card:#fffaf3; --fg:#2a160e; --muted:#7a5d4f; --line:#e6d6c6;
+  --wood:#7a2a1c; --gold:#c98a12; --chroma:#00b140; --ok:#2f7d4a; --code:#f1e6d8;
+  --display:'Baloo 2',ui-rounded,system-ui,sans-serif; --body:system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1b120d;--card:#26190f;--fg:#f4e7d6;--muted:#b49a86;--line:#3c2a1e;--wood:#e08a6a;--gold:#f0b440;--ok:#6cc58b;--code:#2f2016;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b120d;--card:#26190f;--fg:#f4e7d6;--muted:#b49a86;--line:#3c2a1e;--wood:#e08a6a;--gold:#f0b440;--ok:#6cc58b;--code:#2f2016;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{padding-top:20px;display:flex;flex-direction:column;gap:8px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,6vw,36px);line-height:1.05;margin:0;color:var(--wood);text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:62ch}
+.rules{display:flex;flex-direction:column;gap:6px;margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-size:14px}
+.rules b{color:var(--wood)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.bar select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);min-width:0;max-width:100%}
+.prog{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+section{display:flex;flex-direction:column;gap:12px}
+h2{font-family:var(--display);font-weight:800;font-size:22px;margin:8px 0 0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+h2 small{font-family:var(--body);font-weight:500;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.done{opacity:.55}
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.top h3{margin:0;font-size:16px;font-weight:700;flex:1 1 auto;min-width:0}
+.chip{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid var(--gold);color:var(--gold);white-space:nowrap}
+.file{font-family:var(--mono);font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.attach{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.attach img{width:min(260px,100%);border-radius:8px;border:2px solid var(--chroma)}
+.attach p{margin:0;font-size:14px;flex:1 1 180px;min-width:0}
+.note{margin:0;font-size:14px;padding:8px 10px;border-left:3px solid var(--gold);background:var(--code);border-radius:0 8px 8px 0}
+.prompt{font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--code);border-radius:8px;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;max-height:9.5em;overflow:auto;user-select:text}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.copy{font:inherit;font-weight:700;padding:9px 16px;border-radius:10px;border:0;background:var(--wood);color:var(--card);cursor:pointer}
+button.copy.ok{background:var(--ok)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+label.dn{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+label.dn input{width:18px;height:18px;accent-color:var(--ok)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap">
+  <header>
+    <h1>Granma Wasfiyya · prompt kartları</h1>
+    <p class="lead">Her kart tek bir görsel içindir. Gemini'de her kart için yeni bir istek yap: referans görseli ekle, prompt'u kopyala-yapıştır, çıkan görseli kartın altındaki dosya adıyla kaydet.</p>
+    <div class="rules">
+      <span><b>Referans görseller</b> sohbette ayrı dosyalar olarak gönderildi (repoda da <span class="file">art/briefs/refs/</span>). Kartta görünen küçük önizleme sadece hangisini ekleyeceğini göstermek için.</span>
+      <span><b>Yön kuralı</b> prompt'ların içinde: Granma hep adamın sağında. Diğer taraf için oyun görseli aynalıyor, ikinci bir sürüm üretme.</span>
+      <span><b>Sonuç</b> yeşil fonda, tek kişi, baştan ayağa değilse aynı istekte "try again" de.</span>
+    </div>
+  </header>
+  <div class="bar">
+    <label for="sec" class="prog">Bölüm</label>
+    <select id="sec"></select>
+    <span class="prog" id="prog"></span>
+  </div>
+  <main id="list" class="wrap"></main>
+</div>
+<script>
+/*DATA*/
+const KEY='wasfiyya-prompts-done';
+let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){done={}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}};
+const secs=[...new Set(CARDS.map(c=>c.sec))];
+const sel=document.getElementById('sec'), list=document.getElementById('list'), prog=document.getElementById('prog');
+sel.innerHTML='<option value="">Hepsi</option>'+secs.map(s=>`<option>${s}</option>`).join('');
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(){
+  const f=sel.value; let html='';
+  for(const s of secs){ if(f&&s!==f)continue;
+    const cs=CARDS.map((c,i)=>[c,i]).filter(([c])=>c.sec===s), n=cs.filter(([c])=>done[c.file]).length;
+    html+=`<section><h2>${esc(s)} <small>${n}/${cs.length} hazır</small></h2>`;
+    cs.forEach(([c,i],k)=>{
+      html+=`<article class="card${done[c.file]?' done':''}"><div class="top"><h3>${k+1}. ${esc(c.title)}</h3><span class="chip">${esc(c.tool)}</span></div>`;
+      if(c.img) html+=`<div class="attach"><img src="${IMGS[c.img]}" alt="Referans: ${esc(c.img)}"><p>Bu görseli ekle: <span class="file">${esc(c.img)}</span></p></div>`;
+      if(c.note) html+=`<p class="note">${esc(c.note)}</p>`;
+      if(c.prompt) html+=`<pre class="prompt" id="p${i}">${esc(c.prompt)}</pre>`;
+      html+=`<div class="actions">${c.prompt?`<button class="copy" data-i="${i}">Prompt'u kopyala</button>`:''}<label class="dn"><input type="checkbox" id="d${i}" data-f="${esc(c.file)}"${done[c.file]?' checked':''}> Kaydedildi</label><span class="file">${esc(c.file)}</span></div></article>`;
+    });
+    html+='</section>';
+  }
+  list.innerHTML=html;
+  const tot=CARDS.length, d=CARDS.filter(c=>done[c.file]).length; prog.textContent=`${d}/${tot} tamam`;
+}
+list.addEventListener('click',e=>{
+  const b=e.target.closest('button.copy'); if(!b)return;
+  const t=CARDS[b.dataset.i].prompt, pre=document.getElementById('p'+b.dataset.i);
+  const ok=()=>{b.textContent='Kopyalandı';b.classList.add('ok');setTimeout(()=>{b.textContent="Prompt'u kopyala";b.classList.remove('ok')},1600)};
+  const fallback=()=>{const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Seçildi, kopyala';};
+  try{navigator.clipboard.writeText(t).then(ok,fallback)}catch(err){fallback()}
+});
+list.addEventListener('change',e=>{const c=e.target.closest('input[data-f]');if(!c)return;done[c.dataset.f]=c.checked;if(!c.checked)delete done[c.dataset.f];save();render();});
+sel.addEventListener('change',render);
+render();
+</script>

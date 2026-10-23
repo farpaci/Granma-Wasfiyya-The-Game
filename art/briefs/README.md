@@ -1,5 +1,7 @@
 # Art brief: 3-hit combo (slap · slap · kick) and new men
 
+> **Don't paste this file into Gemini.** Use `prompt-cards.html` (published at https://claude.ai/artifact/EESZ4NFQtsUN2sko5AuCQH): one self-contained prompt per image with a copy button. Regenerate it with `python3 tools/briefs/prompt_page.py . art/briefs/prompt-cards.html`; the reference sheets come from `python3 tools/briefs/ref_sheets.py .`.
+
 Gameplay this art is for:
 1. **1st slap** → the man stops and **holds his slapped cheek**.
 2. **2nd slap** → he **leans ~45° sideways away from Granma** to dodge a third slap.
