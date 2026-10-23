@@ -32,3 +32,14 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 | `man_hoodie_sheet.webp` | 1672x941, five separate figures. 1, 2, 4, 5 correct; dodge (3) leans towards granma: mirror. |
 | `man_hoodie_walk_sheet.webp` | ChatGPT 1536x1024, green background, 8 separate frames ~470 px. |
 **Touching figures:** in `man_tank_sheet` (figures 3+4), `man_tee_sheet` (4+5) and `man_shirt_sheet` (3+4) the kicked figure's raised leg touches its neighbour, so they form one connected blob. Split at the narrowest joining column when cutting (contact is only a shoe/hem).
+
+## Tea-table groups (table-kick feature)
+Three alternative actions, picked at random per group. Seen from the street; Granma kicks from the LEFT (canonical: group on her right, screen-right); mirror for the other side.
+
+| file | notes |
+|---|---|
+| `group_adana_a_run_sheet.webp` | 1536x1024 green, 3+2 panels: calm, kick impact, jumping up (table already on the ground), men running (men ONLY, no table), aftermath (table/stools/glasses only). Panel 3 touches the right edge (a hand may be clipped). |
+| `group_adana_a_stay_sheet.webp` | 2000x719 RGBA transparent, same group A, 3 panels: calm, kick impact, aftermath where the men stay standing and shouting (one sits on the ground) next to the overturned table. Panel 3 touches the right edge. |
+| `group_adana_b_run_sheet.webp` | 1536x1024 green, group B (3 men), same 5 moments as the A run sheet; in panel 4 the three runners are separate blobs. |
+
+Cutting notes: register all panels of a sheet on the TABLE (its base / the stools' footprint) so the scene doesn't jump between frames; the "men running" panel has no table, so in game draw the aftermath panel (table) underneath it and move the runners away from the table while they fade.
