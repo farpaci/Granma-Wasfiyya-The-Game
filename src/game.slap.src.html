@@ -39,10 +39,10 @@
   /* HUD right */
   #hud-r{position:fixed;z-index:20;right:calc(min(2vw,26px) + var(--sr));top:calc(min(2vh,22px) + var(--st));display:flex;gap:6px;align-items:stretch}
   .panel{background:rgba(20,28,36,.62);border:1px solid rgba(255,255,255,.16);border-radius:12px;backdrop-filter:blur(6px);color:#fff}
-  #dist,#slaps,#ko{padding:.2em .6em .15em;text-align:left;min-width:92px;border-radius:9px}
-  #slaps,#ko{min-width:62px}
-  #dist small,#slaps small,#ko small{display:block;font-size:8px;letter-spacing:.14em;opacity:.85;font-weight:800}
-  #dist span,#slaps span,#ko span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(15px,2.6vmin,22px);letter-spacing:.04em;line-height:1.05}
+  #dist,#slaps,#ko,#tab{padding:.2em .6em .15em;text-align:left;min-width:92px;border-radius:9px}
+  #slaps,#ko,#tab{min-width:62px}
+  #dist small,#slaps small,#ko small,#tab small{display:block;font-size:8px;letter-spacing:.14em;opacity:.85;font-weight:800}
+  #dist span,#slaps span,#ko span,#tab span{font-family:'Lilita One','Baloo 2',sans-serif;font-size:clamp(15px,2.6vmin,22px);letter-spacing:.04em;line-height:1.05}
   #pause,#fs,#helpbtn{width:36px;border:1px solid rgba(255,255,255,.16);border-radius:9px;color:#fff;background:rgba(20,28,36,.62);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(6px)}
   #pause:active,#fs:active,#helpbtn:active{transform:scale(.95)}
   #fs,#helpbtn{font-size:17px;line-height:1;padding:0;font-family:system-ui,sans-serif;font-weight:800}
@@ -55,6 +55,13 @@
   body.paused #pause i{width:0;height:0;background:none;box-shadow:none;border-left:13px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;border-radius:0;margin:0 0 0 4px}
 
   /* narrow screens: the longer title gets its own row, HUD drops below it */
+  @media (max-width:480px){   /* five chips + three buttons must fit 390 px */
+    #hud-r{gap:4px}
+    #dist{min-width:74px;padding:.2em .45em .15em}
+    #slaps,#ko,#tab{min-width:0;padding:.2em .4em .15em}
+    #dist small,#slaps small,#ko small,#tab small{letter-spacing:.06em}
+    #pause,#fs,#helpbtn{width:28px}
+  }
   @media (max-width:640px){
     #hud-r{top:calc(min(2vh,22px) + 46px + var(--st))}
     #hint{top:calc(min(2vh,22px) + 92px + var(--st)) !important}
@@ -112,6 +119,7 @@
   <div id="dist" class="panel"><small>DISTANCE</small><span id="distv">00000 m</span></div>
   <div id="slaps" class="panel"><small>SLAPS</small><span id="slapsv">0</span></div>
   <div id="ko" class="panel"><small>KO</small><span id="kov">0</span></div>
+  <div id="tab" class="panel"><small>TABLES</small><span id="tabv">0</span></div>
   <button id="pause" aria-label="Pause"><i></i></button>
   <button id="fs" aria-label="Fullscreen" hidden>⛶</button>
   <button id="helpbtn" aria-label="Help">?</button>
@@ -125,7 +133,7 @@
     <kbd>D / →</kbd><em>Move right</em>
     <kbd>Mouse</kbd><em>Look around (drag)</em>
     <kbd>Q / E</kbd><em>Change camera angle</em>
-    <kbd>Space</kbd><em>Slap / kick the nearest man</em>
+    <kbd>Space</kbd><em>Slap / kick the nearest man or tea table</em>
     <kbd>J / K</kbd><em>Near / far air slap</em>
     <kbd>P</kbd><em>Pause</em>
   </div>
@@ -171,7 +179,8 @@ function loadKeys(keep) {
   })));
 }
 const isEnemyKey = k => /^(walk_[a-z]|hit[12]_|fall_|down_)/.test(k);
-const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k) && !isEnemyKey(k));   // core art first; slap frames decode in the background
+const isGroupKey = k => /^[ab]_(run|stay)_\d/.test(k);
+const loadAll = () => loadKeys(k => !isSlapKey(k) && !isSfxKey(k) && !isEnemyKey(k) && !isGroupKey(k));   // core art first; slap frames decode in the background
 
 /* ---------- slap system ---------- */
 const SLAP = { cur: null, fx: null, target: null, frame: null, next: 'A', lastSide: 1, ready: false };
@@ -191,6 +200,21 @@ function playKick() {                        // low synthesised thump + a softer
     o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 0.27);
   } catch (e) {}
 }
+let NB = null;
+function playGlass() {                       // glass shatter: filtered noise burst + a few high tinkles (shares AC)
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    if (!NB) { NB = AC.createBuffer(1, Math.floor(AC.sampleRate * 0.5), AC.sampleRate); const d = NB.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const t = AC.currentTime, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    s.buffer = NB; f.type = 'highpass'; f.frequency.value = 3200; g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + 0.5);
+    for (let i = 0; i < 4; i++) {
+      const o = AC.createOscillator(), h = AC.createGain(), u = t + 0.03 + i * 0.07 + Math.random() * 0.04;
+      o.frequency.value = 3800 + Math.random() * 3200; h.gain.setValueAtTime(0.12, u); h.gain.exponentialRampToValueAtTime(0.001, u + 0.09);
+      o.connect(h); h.connect(AC.destination); o.start(u); o.stop(u + 0.1);
+    }
+  } catch (e) {}
+}
 function startSlap(kind, side) {              // kind 'A' near | 'B' far; side -1 left | +1 right (left = mirrored clip)
   if (SLAP.cur || paused || !SLAP.ready) return false;
   SLAP.cur = { kind, side, flip: side < 0, t: 0, hit: false, kick: kind === 'K' };
@@ -206,14 +230,29 @@ function sideNow() {
   if (joy.x < -0.2) return -1; if (joy.x > 0.2) return 1;
   return SLAP.lastSide;
 }
-function slapAuto() {
-  if (SLAP.cur || paused || !SLAP.ready) return;
+const APP = { g: null, t: 0 };               // auto-approach to a tea table before the kick
+function eligibleMan() {
   let best = null, bd = 9;
   for (const e of enemies) {
     if (e.tgt || (e.state !== 'walking' && e.state !== 'hit1' && e.state !== 'hit2')) continue;
     const dz = e.z - P.z;
     if (dz < -0.2 || dz > 3.0 || Math.abs(e.x - P.x) >= 2.2 || dz >= bd) continue;
     best = e; bd = dz;
+  }
+  return best;
+}
+function kickSpot(g) { return Math.max(-STREET_HALF, Math.min(STREET_HALF, g.x - g.side * (g.nE + META_SLAP.K.foot.x_m))); }
+function slapAuto() {
+  if (SLAP.cur || paused || !SLAP.ready || APP.g) return;
+  const best = eligibleMan();
+  if (!best && GR.ready) {                    // only when no man is eligible: walk to a tea table in range, then kick it
+    const c0 = Math.floor(P.z / CHUNK); let bg = null, bd = 9;
+    for (let c = c0 - 1; c <= c0 + 1; c++) for (const g of genChunk(c).groups) {
+      const dz = g.z - P.z;
+      if (g.kt >= 0 || g.tgt || dz < -0.4 || dz > 2.2 || Math.abs(g.x - P.x) >= 4.4 || dz >= bd) continue;
+      bg = g; bd = dz;
+    }
+    if (bg) { APP.g = bg; APP.t = 0; bg.tgt = 1; return; }
   }
   if (best) { slapEnemy(best); return; }
   const k = SLAP.next; if (startSlap(k, sideNow())) SLAP.next = k === 'A' ? 'B' : 'A';
@@ -250,7 +289,8 @@ function spawnEnemy() {
   EN.last = id; EN.lastSide = side;
   return true;
 }
-function engage(e, f) {                       // lerp a targeted man so her hand (slap) / foot (kick) meets his face / hip on screen
+function engage(e, f) {
+                       // lerp a targeted man so her hand (slap) / foot (kick) meets his face / hip on screen
   const hx = e.tgt === 2 ? META_SLAP.K.foot.x_m : META_ENEMY._slapHand[e.clip].x_m, ke = focal / (cam.D + 0.15);
   const tx = cam.x + (P.x + e.side * hx - cam.x) * (focal / cam.D) / ke;
   e.x += (tx - e.x) * f; e.z += (P.z + 0.15 - e.z) * f;
@@ -268,7 +308,9 @@ function updateEnemies(dt) {
     else if (st === 'walking') {
       e.z -= EN_SPEED * dt; e.dist += EN_SPEED * dt;
       if (e.z - P.z < 20) {
-        const tx = P.x + e.side * e.L, d = tx - e.x, m = 0.8 * dt;
+        let tx = P.x + e.side * e.L;
+        if (groupNear(e)) { const lim = STREET_HALF - 0.3; if (e.side > 0 ? tx > lim : tx < -lim) tx = e.side * lim; }   // keep off tea-table groups
+        const d = tx - e.x, m = 0.8 * dt;
         e.x += d > m ? m : d < -m ? -m : d;
       }
     } else if (st === 'hit1' || st === 'hit2') {
@@ -288,6 +330,11 @@ function updateEnemies(dt) {
   enemies.sort(byZ);
 }
 const byZ = (a, b) => b.z - a.z;
+function groupNear(e) {
+  const c0 = Math.floor(e.z / CHUNK);
+  for (let c = c0 - 1; c <= c0 + 1; c++) for (const g of genChunk(c).groups) if (g.side === e.side && Math.abs(g.z - e.z) < 4) return true;
+  return false;
+}
 function drawEnemy(e, camZ) {
   const M = META_ENEMY[e.id], st = e.state, side = e.side, walk = st === 'walking', sp = walk ? M.walk : M[st], n = M.walk.n;
   const im = IMG[walk ? e.keys[Math.floor(e.dist / (EN_SPEED * M.walk.loop) * n) % n] : e.pk[st]];
@@ -331,6 +378,9 @@ const TYPES = {
 };
 const COUNTS = { palm: 4, arch: 3, cafe: 3, board: 3, stall: 1, planter: 4, bench: 2, lamp: 3, bin: 2 };
 const CHUNK = 48;
+const GV = ['a_run', 'a_stay', 'b_run'], FURN = new Set(['planter', 'bench', 'lamp', 'bin', 'board']), GR = { ready: false };
+let GT = 0;                  // game clock (s) for group reactions
+let TB = 0;
 const PLAYER_H = 1.85;
 const STREET_HALF = 3.4;     // walkable half-width
 const MAX_DRAW = 125;
@@ -412,6 +462,14 @@ function genChunk(c) {
       items.facades.push({ side, z1: z, z2, h, floors, seed: Math.floor(r() * 4294967296), style: Math.floor(r() * 3), d: 6 + r() * 4, touchPrev: prev && !gap, key: c + ':' + side + ':' + i++ });
       z = z2; prev = true;
     }
+  }
+  // tea-table groups (rolled last so every earlier prop/facade roll is unchanged); clear street furniture around them
+  items.groups = [];
+  for (const side of [-1, 1]) {
+    if (r() >= 0.4) continue;
+    const gz0 = z0 + r() * CHUNK, gv = GV[Math.floor(r() * GV.length)], gm = META_GROUP[gv], nE = gm.frames[0].ax / gm.mpp, gx = side * (STREET_HALF + 0.1 + nE + r() * 0.3), gz = gz0;   // near edge of the seated group just outside the walkway
+    for (let i = items.length - 1; i >= 0; i--) { const q = items[i]; if (q.side === side && Math.abs(q.z - gz) < 3 && FURN.has(q.type) && Math.abs(q.x) < 5.5) items.splice(i, 1); }
+    const g = { grp: 1, type: 'group', gv, nE, x: gx, z: gz, side, kt: -1, tgt: 0 }; items.push(g); items.groups.push(g);
   }
   chunkCache.set(c, items);
   if (chunkCache.size > 14) chunkCache.delete(chunkCache.keys().next().value);
@@ -840,7 +898,35 @@ function fogCanvas(im) {
   return c;
 }
 
+function drawGrp(f, mpp, x, z, a, side, camZ) {       // one registered panel: anchor on the table footprint, mirrored for side -1
+  const im = IMG[f.key]; if (!im || a <= 0) return;
+  const dz = z - camZ; if (dz < 0.3) return;
+  const k = focal / dz, s = k / mpp, w = f.w * s, h = f.h * s;
+  const sx = W / 2 + (x - cam.x) * k - yaw * focal;
+  if (sx + w < -20 || sx - w > W + 20) return;
+  const base = cam.hz * H + cam.h * k; if (base - h > H) return;
+  ctx.save(); ctx.translate(sx, base); if (side < 0) ctx.scale(-1, 1);
+  ctx.globalAlpha = a; ctx.drawImage(im, -f.ax * s, -f.ay * s, w, h);
+  const fogA = Math.min(0.5, Math.max(0, (dz - 22) / 170)) * a;
+  if (fogA > 0.03) { ctx.globalAlpha = fogA; ctx.drawImage(fogCanvas(im), -f.ax * s, -f.ay * s, w, h); }
+  ctx.restore();
+}
+function drawGroup(it, camZ) {
+  const M = META_GROUP[it.gv], F = M.frames, dz = it.z - camZ;
+  let a = dz > MAX_DRAW - 35 ? Math.max(0, (MAX_DRAW - dz) / 35) : 1;
+  if (dz < 4.5) a *= Math.max(0, (dz - 1.2) / 3.3);
+  if (a <= 0) return;
+  const run = M.kind === 'run';
+  let fi = 0, t = it.kt < 0 ? -1 : GT - it.kt;
+  if (t >= 0) fi = run ? (t < 0.18 ? 1 : t < 0.53 ? 2 : 4) : (t < 0.25 ? 1 : 2);
+  drawGrp(F[fi], M.mpp, it.x, it.z, a, it.side, camZ);
+  if (run && t >= 0.53 && t < 1.43) {                   // runners flee from Granma: away along the side + slightly into the distance, fading
+    const u = (t - 0.53) / 0.9, e = u * (2 - u);
+    drawGrp(F[M.runners], M.mpp, it.x + it.side * 2.5 * e, it.z + 1.0 * e, a * (1 - u), it.side, camZ);
+  }
+}
 function drawItem(it, camZ) {
+  if (it.grp) { if (GR.ready) drawGroup(it, camZ); return; }
   const t = TYPES[it.type];
   const im = IMG[t.key(it.v)]; if (!im) return;
   const dz = it.z - camZ, k = focal / dz;
@@ -918,11 +1004,11 @@ function frameCam(dt) {
   const e = SLAP.frame, sl = SLAP.cur;
   if (!sl) SLAP.frame = null;
   if (e && sl) {
-    const kk = sl.kick, M = kk ? META_SLAP.K.frames[1] : META_SLAP[sl.kind], mpp = PLAYER_H / META.h, ME = META_ENEMY[e.id];
+    const kk = sl.kick, M = kk ? META_SLAP.K.frames[1] : META_SLAP[sl.kind], mpp = PLAYER_H / META.h, ME = e.grp ? null : META_ENEMY[e.id], G = !!e.grp;
     const pl = -M.pivot * M.w * mpp, pr = (1 - M.pivot) * M.w * mpp;              // clip extent around her pivot (metres)
-    const mc = e.side * (kk ? META_SLAP.K.foot.x_m : META_ENEMY._slapHand[e.clip].x_m), mh = ME.hit2.w * e.H / ME.heightPx * 0.5 + (kk ? 0.5 : 0);
+    const mc = e.side * (kk ? (G ? Math.max(0.3, e.nE + 0.4) : META_SLAP.K.foot.x_m) : META_ENEMY._slapHand[e.clip].x_m), mh = G ? 1.0 : ME.hit2.w * e.H / ME.heightPx * 0.5 + (kk ? 0.5 : 0);
     const o = P.x * 0.18, xl = o + Math.min(sl.flip ? -pr : pl, mc - mh), xr = o + Math.max(sl.flip ? -pl : pr, mc + mh);   // relative to the unshifted camera
-    const lim = W * 0.42, hm = Math.max(e.H, PLAYER_H);
+    const lim = W * 0.42, hm = Math.max(G ? PLAYER_H : e.H, PLAYER_H);
     const Dh = hm > cam.h ? focal * (hm - cam.h) / (H * (cam.hz - 0.04)) : 0;     // keep heads below the top edge
     const k0 = focal / cam.dz;
     if (xl * k0 < -lim || xr * k0 > lim || Dh > cam.dz) {
@@ -946,6 +1032,7 @@ function update(dt) {
   if (keys.has('KeyS') || keys.has('ArrowDown')) iy -= 1;
   ix = Math.max(-1, Math.min(1, ix)); iy = Math.max(-1, Math.min(1, iy));
   if (ix !== 0) SLAP.lastSide = Math.sign(ix);
+  GT += dt;
   const sl = SLAP.cur;
   if (sl) {                                           // she plants her feet while slapping
     const kk = sl.kick, M = kk ? null : META_SLAP[sl.kind];
@@ -954,7 +1041,9 @@ function update(dt) {
       sl.hit = true; if (kk) playKick(); else playSlap(sl.kind);
       SLAP.fx = { t: 0, side: sl.side, kind: sl.kind };
       const t = SLAP.target;
-      if (t && t.tgt) {
+      if (t && t.tgt && t.grp) {
+        t.tgt = 0; t.kt = GT; TB++; $('tabv').textContent = TB; playGlass();
+      } else if (t && t.tgt) {
         engage(t, 1); t.tgt = 0; t.t = 0;
         if (kk) { t.state = 'fall'; t.x0 = t.x; EN.ko++; $('kov').textContent = EN.ko; }
         else { t.state = t.state === 'walking' ? 'hit1' : 'hit2'; EN.count++; $('slapsv').textContent = EN.count; }
@@ -967,8 +1056,16 @@ function update(dt) {
   if (!SLAP.cur && SLAP.target) { SLAP.target.tgt = 0; SLAP.target = null; }
   if (SLAP.fx) { SLAP.fx.t += dt; if (SLAP.fx.t > 0.55) SLAP.fx = null; }
 
-  const targetVz = Math.max(0, iy) * 3.0;               // brisk pace (was 2.4 m/s)
-  const targetVx = ix * 2.1;
+  let targetVz = Math.max(0, iy) * 3.0, targetVx = ix * 2.1;   // brisk pace (was 2.4 m/s)
+  if (APP.g) {                                          // auto-approach: walk to the kick spot (input ignored; a key away from the table cancels)
+    const g = APP.g, ex = kickSpot(g) - P.x, ez = g.z - 0.2 - P.z; APP.t += dt;
+    const away = (keys.has('KeyA') || keys.has('ArrowLeft') || joy.x < -0.3) && ex > 0.1 || (keys.has('KeyD') || keys.has('ArrowRight') || joy.x > 0.3) && ex < -0.1;
+    if (SLAP.cur || paused || away || eligibleMan() || g.kt >= 0) { g.tgt = 0; APP.g = null; }
+    else if ((Math.abs(ex) < 0.1 && Math.abs(ez) < 0.15) || APP.t > 1.2) {
+      APP.g = null; if (startSlap('K', g.side)) { g.tgt = 1; SLAP.target = g; SLAP.frame = g; } else g.tgt = 0;
+      targetVx = targetVz = 0;
+    } else { targetVx = Math.max(-2.1, Math.min(2.1, ex * 4)); targetVz = Math.max(-1.5, Math.min(3.0, ez * 4)); if (ex) SLAP.lastSide = Math.sign(ex); }
+  }
   const ease = 1 - Math.exp(-dt * (SLAP.cur ? 16 : 6));   // plant her feet quickly when a slap starts
   P.vz += (targetVz - P.vz) * ease;
   P.vx += (targetVx - P.vx) * ease;
@@ -1109,11 +1206,11 @@ loadAll().then(() => {
   $('loading').style.display = 'none';
   last = performance.now();
   requestAnimationFrame(loop);
-  loadKeys(isSlapKey).then(() => { SLAP.ready = true; $('slapbtn').disabled = false; return loadKeys(isEnemyKey); }).then(enemyInit);
+  loadKeys(isSlapKey).then(() => { SLAP.ready = true; $('slapbtn').disabled = false; return loadKeys(isEnemyKey); }).then(enemyInit).then(() => loadKeys(isGroupKey)).then(() => { GR.ready = true; });
 });
 
 // test hook for headless checks
-window.__game = { P, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto, slapEnemy, enemies, EN };
+window.__game = { spawnEnemy, APP, P, GT: () => GT, TB: () => TB, genChunk, CHUNK, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto, slapEnemy, enemies, EN };
 })();
 </script>
 </body>
