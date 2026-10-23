@@ -22,7 +22,7 @@ NEW = [
  ('tourist', 'Turist', 'a sunburnt middle-aged European tourist in a wide straw hat, a loud orange Hawaiian shirt, beige cargo shorts, white socks with sandals and a big camera around his neck'),
  ('courier', 'Kurye', 'a young delivery rider in a blue-and-white jacket, an open-face motorcycle helmet, a square insulated delivery backpack, black trousers and sneakers'),
  ('suit', 'Takım elbiseli', 'a slick businessman in a tight navy suit with an open white collar, slicked-back hair, sunglasses pushed up on his head, a phone in one hand and pointed brown shoes'),
- ('teen', 'Genç', 'a skinny teenager in an oversized purple hoodie, big headphones around his neck, baggy grey jeans and chunky white sneakers'),
+ ('influencer', 'Influencer', 'a man in his early thirties with a trimmed beard and styled hair, a social-media influencer in a bright purple bomber jacket over a white T-shirt, light ripped jeans and chunky white sneakers, holding a phone on a selfie stick'),
  ('fisher', 'Balıkçı', 'a stocky fisherman in a yellow waterproof apron over a blue-and-white striped shirt with rolled sleeves, black rubber boots and a navy woollen cap'),
  ('uncle', 'Amca', 'a big-bellied older man with a grey moustache, a white sleeveless vest, loose brown sirwal trousers, plastic slippers and prayer beads in his hand'),
 ]

@@ -96,7 +96,7 @@ Suggested new characters (distinct silhouettes and colours, no green clothing):
 | `tourist` | a sunburnt middle-aged European tourist in a wide straw hat, loud orange Hawaiian shirt, beige cargo shorts, white socks with sandals, big camera around his neck |
 | `courier` | a young delivery rider in a blue-and-white jacket, open motorcycle helmet, square insulated delivery backpack, black trousers, sneakers |
 | `suit` | a slick businessman in a tight navy suit, open white collar, slicked-back hair, sunglasses on his head, phone in one hand, pointed brown shoes |
-| `teen` | a skinny teenager in an oversized purple hoodie, big headphones around his neck, baggy grey jeans, chunky white sneakers, smirking |
+| `influencer` | a man in his early thirties with a trimmed beard and styled hair, a social-media influencer in a bright purple bomber jacket over a white T-shirt, light ripped jeans, chunky white sneakers, holding a phone on a selfie stick |
 | `fisher` | a stocky fisherman in a yellow waterproof apron over a striped shirt, rolled-up sleeves, black rubber boots, woollen cap |
 | `uncle` | a big-bellied older man with a grey moustache in a white vest and loose brown sirwal trousers, plastic slippers, prayer beads in his hand |
 
