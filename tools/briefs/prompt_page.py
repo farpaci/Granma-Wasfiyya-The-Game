@@ -54,7 +54,7 @@ DONE = {'tank', 'tee', 'shirt', 'shemagh', 'thobe'}
 for mid, tr, desc in MEN:
     if mid in DONE: continue
     cards.append((f'{tr} ({mid})', '5 poz tek görselde', 'Gemini · görsel 16:9', f'man_{mid}.png', 'En-boy oranını 16:9 seç.', f'man_{mid}_sheet.png', sheet_prompt(REF_EXISTING, desc)))
-DONE_NEW = {'tourist', 'suit', 'courier', 'influencer', 'uncle'}
+DONE_NEW = {'tourist', 'suit', 'courier', 'influencer', 'uncle', 'thobe'}
 THOBE_DESC = 'a bearded Gulf Arab man in his thirties in a long white thobe (dishdasha) with a breast pocket, a white ghutra headscarf held by a black agal, brown leather sandals'
 NEW_FIRST = [('thobe', 'Beyaz thobe (yeniden)', THOBE_DESC)]
 for mid, tr, desc in NEW_FIRST + NEW:
