@@ -23,7 +23,6 @@ NEW = [
  ('courier', 'Kurye', 'a delivery rider in his late twenties, in a blue-and-white jacket, an open-face motorcycle helmet, a square insulated delivery backpack, black trousers and sneakers'),
  ('suit', 'Takım elbiseli', 'a slick businessman in a tight navy suit with an open white collar, slicked-back hair, sunglasses pushed up on his head, a phone in one hand and pointed brown shoes'),
  ('influencer', 'Influencer', 'a man in his early thirties with a trimmed beard and styled hair, a social-media influencer in a bright purple bomber jacket over a white T-shirt, light ripped jeans and chunky white sneakers, holding a phone on a selfie stick'),
- ('fisher', 'Balıkçı', 'a stocky fisherman in a yellow waterproof apron over a blue-and-white striped shirt with rolled sleeves, black rubber boots and a navy woollen cap'),
  ('uncle', 'Amca', 'a big-bellied older man with a grey moustache, a white sleeveless vest, loose brown sirwal trousers, plastic slippers and prayer beads in his hand'),
 ]
 POSES = [
