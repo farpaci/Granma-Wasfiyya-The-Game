@@ -51,7 +51,7 @@ def sheet_prompt(ref_sentence, desc):
         "4. Kicked: falling sideways to HIS LEFT after a kick on his right hip, body tilted about 60 degrees, right leg lifted off the ground, arms flailing, shocked open mouth, only his left foot still touching the ground.\n"
         "5. Knocked down: lying flat on his back on the ground, dazed, eyes closed, arms spread, feet pointing towards the camera and head away from it, seen from slightly above.\n\n" + SHEET_BG)
 REF_EXISTING = ("Use the attached reference image: it shows the same man twice, a small walking frame on the left (his outfit) and a large sharp photo on the right (his face, hair, beard and build).")
-DONE = {'tank', 'thobe', 'tee', 'shirt'}
+DONE = {'tank', 'thobe', 'tee', 'shirt', 'shemagh'}
 for mid, tr, desc in MEN:
     if mid in DONE: continue
     cards.append((f'{tr} ({mid})', '5 poz tek görselde', 'Gemini · görsel 16:9', f'man_{mid}.png', 'En-boy oranını 16:9 seç.', f'man_{mid}_sheet.png', sheet_prompt(REF_EXISTING, desc)))
