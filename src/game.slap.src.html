@@ -208,7 +208,7 @@ function slapAuto() {
 function slapEnemy(e) { if (!e || e.state !== 'walking' || !startSlap(e.clip, e.side)) return false; e.state = 'struck'; SLAP.target = e; SLAP.frame = e; return true; }
 
 /* ---------- enemies ---------- */
-const enemies = [], EN = { ready: false, t: 2, last: '', lastSide: 1, count: 0 }, EN_IDS = ['thobe', 'tank', 'tee', 'hoodie', 'shirt', 'shemagh'];
+const enemies = [], EN = { ready: false, t: 2, last: '', lastSide: 1, count: 0 }, EN_IDS = ['thobe', 'tank', 'tee', 'shirt', 'shemagh'];
 const EN_H = { thobe: 1.90, tank: 1.82, tee: 1.85, hoodie: 1.75, shirt: 1.80, shemagh: 1.75 }, EN_SPEED = 1.25, EN_KEYS = {};
 function enemyInit() {
   for (const id of EN_IDS) EN_KEYS[id] = Array.from({ length: META_ENEMY[id].walk.n }, (_, i) => 'walk_' + id + '_' + String(i).padStart(2, '0'));
