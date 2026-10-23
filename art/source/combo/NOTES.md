@@ -5,7 +5,7 @@ Granma is on the man's right (screen-left); the game mirrors sprites for the oth
 
 | file | notes |
 |---|---|
-| `man_tank_sheet.webp` | 1024x572. Figure 3 (dodge) leans TOWARDS granma (screen-left): mirror it when cutting. Cap is backwards in 1, 2, 5 and forward in 3, 4 (accepted). Shoes are all red (walk loop has white-red). |
+| `man_tank_sheet.jpg` | 2000x1116 high-res version (replaces the 1024 px webp). Figure 3 (dodge) leans TOWARDS granma (screen-left): mirror it when cutting. Cap backwards in 1, 2, forward in 3, 4, 5 (accepted). Shoes all red (walk loop has white-red). |
 | `man_thobe_ref.jpg` | 1342x2000, neutral reference. |
 | `man_thobe_hit1.jpg` | Holds his LEFT cheek (screen-right): mirror it when cutting. |
 | `man_thobe_hit2_BROKEN.jpg` | Has a second floating head (top left): not usable, waiting for a regenerated version. Lean direction (screen-right) is correct. |
