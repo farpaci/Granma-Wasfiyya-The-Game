@@ -487,7 +487,7 @@ function genChunk(c) {
   for (const side of [-1, 1]) {
     if (r() >= 0.4) continue;
     const gz0 = z0 + r() * CHUNK, gv = GV[Math.floor(r() * GV.length)], gm = META_GROUP[gv], nE = gm.frames[0].ax / gm.mpp, gx = side * (STREET_HALF + 0.1 + nE + r() * 0.3), gz = gz0;   // near edge of the seated group just outside the walkway
-    if (Math.abs(gz - (z0 + 30)) < 5) continue;   // keep tea tables clear of the arch pillars
+    if (Math.abs(gz - (z0 + 30)) < 12) continue;  // keep tea tables well clear of the arch (it reads as sitting in the pillar from the camera)
     for (let i = items.length - 1; i >= 0; i--) { const q = items[i]; if (q.side === side && Math.abs(q.z - gz) < 3 && FURN.has(q.type) && Math.abs(q.x) < 5.5) items.splice(i, 1); }
     const g = { grp: 1, type: 'group', gv, nE, x: gx, z: gz, side, kt: -1, tgt: 0 }; items.push(g); items.groups.push(g);
   }
