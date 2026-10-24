@@ -326,6 +326,7 @@ function updateEnemies(dt) {
       e.x = e.x0 + e.side * 0.6 * u * (2 - u);
       if (e.t >= 0.35) { e.state = 'down'; e.t = 0; }
     } else { e.t += dt; if (e.t > 1.5) dead = true; }
+    if (!dead) e.x = archClamp(e.x, e.z, 0.35);
     if (dead || e.z < camZ + 0.8 || e.z > P.z + MAX_DRAW + 10) {
       if (SLAP.target === e) SLAP.target = null;
       if (SLAP.frame === e) SLAP.frame = null;
@@ -389,6 +390,19 @@ let TB = 0;
 const PLAYER_H = 1.85;
 const STREET_HALF = 3.4;     // walkable half-width
 const MAX_DRAW = 125;
+// arch openings at ground level (world x of the inner pillar edges, measured from assets/arch1..3.png alpha, bottom 30% rows, 9.6 m tall sprites centred on x=0)
+const ARCH_OPEN = [null, [-1.86, 1.80], [-2.01, 1.35], [-1.62, 1.18]];
+const ARCH_RAMP = 2.5, ARCH_HIT = 0.6;
+function archClamp(x, z, hw) {            // keep a body of half-width hw inside the arch opening near an arch (eased in over the ARCH_RAMP m before it)
+  for (let c = Math.floor((z - 30) / CHUNK); c <= Math.floor((z - 30) / CHUNK) + 1; c++) {
+    const d = c * CHUNK + 30 - z;          // >0: arch ahead
+    if (d > ARCH_HIT + ARCH_RAMP || d < -ARCH_HIT) continue;
+    const o = ARCH_OPEN[((c % 3) + 3) % 3 + 1], u = d <= ARCH_HIT ? 1 : 1 - (d - ARCH_HIT) / ARCH_RAMP;
+    const lo = -STREET_HALF + (o[0] + hw + STREET_HALF) * u, hi = STREET_HALF + (o[1] - hw - STREET_HALF) * u;
+    x = Math.max(lo, Math.min(hi, x));
+  }
+  return x;
+}
 
 function mulberry32(a) {
   return function () {
@@ -473,6 +487,7 @@ function genChunk(c) {
   for (const side of [-1, 1]) {
     if (r() >= 0.4) continue;
     const gz0 = z0 + r() * CHUNK, gv = GV[Math.floor(r() * GV.length)], gm = META_GROUP[gv], nE = gm.frames[0].ax / gm.mpp, gx = side * (STREET_HALF + 0.1 + nE + r() * 0.3), gz = gz0;   // near edge of the seated group just outside the walkway
+    if (Math.abs(gz - (z0 + 30)) < 5) continue;   // keep tea tables clear of the arch pillars
     for (let i = items.length - 1; i >= 0; i--) { const q = items[i]; if (q.side === side && Math.abs(q.z - gz) < 3 && FURN.has(q.type) && Math.abs(q.x) < 5.5) items.splice(i, 1); }
     const g = { grp: 1, type: 'group', gv, nE, x: gx, z: gz, side, kt: -1, tgt: 0 }; items.push(g); items.groups.push(g);
   }
@@ -1078,8 +1093,7 @@ function update(dt) {
   P.vx += (targetVx - P.vx) * ease;
   P.z += P.vz * dt;
   P.x += P.vx * dt;
-  if (P.x > STREET_HALF) { P.x = STREET_HALF; P.vx = 0; }
-  if (P.x < -STREET_HALF) { P.x = -STREET_HALF; P.vx = 0; }
+  { const ax = archClamp(Math.max(-STREET_HALF, Math.min(STREET_HALF, P.x)), P.z, 0.45); if (ax !== P.x) P.vx = 0; P.x = ax; }
   const speed = Math.hypot(P.vz, P.vx * 0.5);
   P.phase += speed * dt / 2.2 * 24;                   // 24 video frames per 2.2 m stride: ~33 fps at 3 m/s, a brisker step
 
@@ -1193,8 +1207,8 @@ if (!isTouch) $('look').innerHTML = '⌖ DRAG TO LOOK AROUND';
 /* ---------- loop ---------- */
 let last = performance.now();
 function loop(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (!paused) update(dt);
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;   // keep real-time speed down to 10 fps
+  if (!paused) { if (dt > 0.05) { update(dt / 2); update(dt / 2); } else update(dt); }
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   const fx = SLAP.fx;
@@ -1217,7 +1231,7 @@ loadAll().then(() => {
 });
 
 // test hook for headless checks
-window.__game = { spawnEnemy, APP, P, GT: () => GT, TB: () => TB, genChunk, CHUNK, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto, slapEnemy, enemies, EN };
+window.__game = { archClamp, ARCH_OPEN, eligibleMan, spawnEnemy, APP, P, GT: () => GT, TB: () => TB, genChunk, CHUNK, cam, get yaw() { return yaw; }, keys, IMG, SLAP, startSlap, slapAt, slapAuto, slapEnemy, enemies, EN };
 })();
 </script>
 </body>
